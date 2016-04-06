@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="238.0" prefWidth="631.0" styleClass="background" stylesheets="@DarkThem.css"
+	xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="descriptorApp.view.DescriptionNewDialogController">
+	<children>
+		<GridPane layoutX="-16.0" layoutY="31.0" prefHeight="200.0" prefWidth="560.0" AnchorPane.leftAnchor="10.0"
+			AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+			<columnConstraints>
+				<ColumnConstraints hgrow="SOMETIMES" maxWidth="184.0" minWidth="10.0" prefWidth="172.0" />
+				<ColumnConstraints hgrow="SOMETIMES" maxWidth="540.0" minWidth="10.0" prefWidth="227.0" />
+			</columnConstraints>
+			<rowConstraints>
+				<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+				<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+				<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+				<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+				<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+			</rowConstraints>
+			<children>
+				<Label text="Table Name" />
+				<Label text="Column Name" GridPane.rowIndex="1" />
+				<Label text="Understandable Name" GridPane.rowIndex="2" />
+				<Label text="Description" GridPane.rowIndex="3" />
+				<TextField fx:id="understandableNameField" prefHeight="37.0" prefWidth="469.0" GridPane.columnIndex="1"
+					GridPane.rowIndex="2">
+					<GridPane.margin>
+						<Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
+					</GridPane.margin>
+				</TextField>
+				<TextField fx:id="descriptionField" GridPane.columnIndex="1" GridPane.rowIndex="3">
+					<GridPane.margin>
+						<Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
+					</GridPane.margin>
+				</TextField>
+				<HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1">
+					<children>
+						<ComboBox fx:id="tableNameCombo" prefHeight="35.0" prefWidth="220.0">
+							<HBox.margin>
+								<Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
+							</HBox.margin>
+						</ComboBox>
+						<TextField fx:id="tableNameField" prefHeight="37.0" prefWidth="214.0">
+							<HBox.margin>
+								<Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
+							</HBox.margin>
+						</TextField>
+					</children>
+					<GridPane.margin>
+						<Insets right="1.0" />
+					</GridPane.margin>
+				</HBox>
+				<HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+					<children>
+						<ComboBox fx:id="columnNameCombo" prefHeight="35.0" prefWidth="220.0">
+							<HBox.margin>
+								<Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
+							</HBox.margin>
+						</ComboBox>
+						<TextField fx:id="columnNameField" prefHeight="37.0" prefWidth="214.0">
+							<HBox.margin>
+								<Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
+							</HBox.margin>
+						</TextField>
+					</children>
+					<GridPane.margin>
+						<Insets right="1.0" />
+					</GridPane.margin>
+				</HBox>
+			</children>
+			<padding>
+				<Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+			</padding>
+		</GridPane>
+		<HBox layoutX="197.1875" layoutY="241.0" spacing="5.0" AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0">
+			<children>
+				<Button defaultButton="true" layoutX="197.1875" layoutY="241.0" mnemonicParsing="false" onAction="#handleOk"
+					prefWidth="90.0" text="OK" />
+				<Button layoutX="249.375" layoutY="241.0" mnemonicParsing="false" onAction="#handleCancel" prefWidth="90.0"
+					text="Cancel" />
+			</children>
+		</HBox>
+	</children>
+</AnchorPane>

@@ -1,0 +1,8 @@
+bin/
+build/
+.settings
+.classpath
+.project
+DBDescriptorInterface.jar
+DBDescriptorInterface_lib
+
