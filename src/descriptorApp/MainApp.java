@@ -14,6 +14,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import descriptorApp.model.DBConnection;
 import descriptorApp.model.Description;
 import descriptorApp.model.IOOperations;
 import descriptorApp.view.DataBaseConfigDialogController;
@@ -33,6 +34,8 @@ public class MainApp extends Application {
 	private BorderPane rootLayout;
 
 	private ObservableList<Description> descriptionData = FXCollections
+			.observableArrayList();
+	private ObservableList<DBConnection> connectionData = FXCollections
 			.observableArrayList();
 
 	private HashMap<String, ArrayList<String>> tablesAndColumns;
@@ -223,6 +226,14 @@ public class MainApp extends Application {
 
 	public void setPrimaryStage(Stage primaryStage) {
 		this.primaryStage = primaryStage;
+	}
+
+	public ObservableList<DBConnection> getConnectionData() {
+		return connectionData;
+	}
+
+	public void setConnectionData(ObservableList<DBConnection> connectionData) {
+		this.connectionData = connectionData;
 	}
 
 	public ObservableList<Description> getDescriptionData() {

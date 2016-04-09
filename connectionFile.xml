@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<connections>
+    <connection>
+        <connectionName>Local</connectionName>
+        <dbName>TestDB</dbName>
+        <dbPassword>atashneshani125</dbPassword>
+        <dbUsername>sa</dbUsername>
+        <serverIP>127.0.0.1</serverIP>
+        <serverPort>443</serverPort>
+    </connection>
+    <connection>
+        <connectionName>Sess</connectionName>
+        <dbName>ShData</dbName>
+        <dbPassword>$Pass@2015</dbPassword>
+        <dbUsername>sa</dbUsername>
+        <serverIP>185.64.176.87</serverIP>
+        <serverPort>443</serverPort>
+    </connection>
+    <connection>
+        <connectionName>Connection #5</connectionName>
+    </connection>
+</connections>

@@ -4,11 +4,18 @@ import javafx.fxml.FXML;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TreeCell;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import org.controlsfx.dialog.Dialogs;
 
 import descriptorApp.MainApp;
+import descriptorApp.model.DBConnection;
 
 public class DataBaseConfigDialogController {
 
@@ -20,17 +27,23 @@ public class DataBaseConfigDialogController {
 
 	@FXML
 	private TextField dataBaseName;
-	
+
 	@FXML
 	private TextField userName;
 
 	@FXML
 	private PasswordField password;
-	
+
 	@FXML
 	private TextArea messages;
 
-	
+	TreeView<String> treeView;
+
+	@FXML
+	VBox vBox;
+
+	TreeItem<String> rootNode;
+
 	private Stage dialogStage;
 	MainApp mainApp;
 	private boolean okClicked = false;
@@ -42,6 +55,68 @@ public class DataBaseConfigDialogController {
 	@FXML
 	private void initialize() {
 		messages.setEditable(false);
+		rootNode = new TreeItem<>("Connections");
+
+		rootNode.setExpanded(true);
+
+		treeView = new TreeView<String>(rootNode);
+		treeView.setEditable(true);
+		treeView.setCellFactory((TreeView<String> p) -> new TextFieldTreeCellImpl());
+		/*
+		 * vBox.setAlignment(Pos.TOP_LEFT);
+		 */
+		vBox.getChildren().add(treeView);
+
+		treeView.getSelectionModel()
+				.selectedItemProperty()
+				.addListener(
+						(observable, oldValue, newValue) -> showConnectionDetails(
+								newValue, oldValue));
+
+	}
+
+	private void showConnectionDetails(TreeItem<String> newValue,
+			TreeItem<String> oldValue) {
+
+		if (oldValue != null) {
+			String connectionName = oldValue.getValue();
+			for (DBConnection dbConnection : mainApp.getConnectionData()) {
+				if (dbConnection.getConnectionName().equals(connectionName)) {
+					dbConnection.setServerIP(serverIP.getText());
+					dbConnection.setServerPort(serverPort.getText());
+					dbConnection.setDbName(dataBaseName.getText());
+					dbConnection.setDbUsername(userName.getText());
+					dbConnection.setDbPassword(password.getText());
+					break;
+				}
+			}
+		} else {
+			// dbConnection.setServerIP("");
+			// dbConnection.setServerPort("");
+			// dbConnection.setDbName("");
+			// dbConnection.setDbUsername("");
+			// dbConnection.setDbPassword("");
+		}
+
+		if (newValue != null) {
+			String connectionName = newValue.getValue();
+			for (DBConnection dbConnection : mainApp.getConnectionData()) {
+				if (dbConnection.getConnectionName().equals(connectionName)) {
+					serverIP.setText(dbConnection.getServerIP());
+					serverPort.setText(dbConnection.getServerPort());
+					userName.setText(dbConnection.getDbUsername());
+					password.setText(dbConnection.getDbPassword());
+					dataBaseName.setText(dbConnection.getDbName());
+					break;
+				}
+			}
+		} else {
+			serverIP.setText("");
+			serverPort.setText("");
+			userName.setText("");
+			password.setText("");
+			dataBaseName.setText("");
+		}
 	}
 
 	/**
@@ -51,12 +126,76 @@ public class DataBaseConfigDialogController {
 	 */
 	public void setDialogStage(Stage dialogStage) {
 		this.dialogStage = dialogStage;
+		// this.dialogStage.setResizable(false);
 	}
 
 	public void setMainApp(MainApp mainApp) {
-        this.mainApp = mainApp;
+		this.mainApp = mainApp;
+
+		for (DBConnection dbConnection : mainApp.getConnectionData()) {
+			TreeItem<String> connectionLeaf = new TreeItem<>(
+					dbConnection.getConnectionName());
+			rootNode.getChildren().add(connectionLeaf);
+		}
+		if (mainApp.getConnectionData().size() == 0) {
+			System.out.println("connection Empty");
+			DBConnection newConnection = new DBConnection();
+			newConnection.setConnectionName("New Connection");
+			mainApp.getConnectionData().add(newConnection);
+		}
 	}
-	
+
+	@FXML
+	private void handleSave() {
+		String connectionName = treeView.getSelectionModel().getSelectedItem()
+				.getValue();
+		if (connectionName != null) {
+			for (DBConnection dbConnection : mainApp.getConnectionData()) {
+				if (dbConnection.getConnectionName().equals(connectionName)) {
+					serverIP.setText(dbConnection.getServerIP());
+					serverPort.setText(dbConnection.getServerPort());
+					userName.setText(dbConnection.getDbUsername());
+					password.setText(dbConnection.getDbPassword());
+					dataBaseName.setText(dbConnection.getDbName());
+					break;
+				}
+			}
+		}
+		mainApp.getIoOperations().saveConnectionDataToFile();
+	}
+
+	@FXML
+	private void handleNew() {
+		DBConnection newConnection = new DBConnection();
+		mainApp.getConnectionData().add(newConnection);
+		String connectionName = "Connection #"
+				+ mainApp.getConnectionData().size();
+		newConnection.setConnectionName(connectionName);
+		rootNode.getChildren().add(new TreeItem<>(connectionName));
+		treeView.getSelectionModel().selectLast();
+	}
+
+	@FXML
+	private void handleDelete() {
+		String connectionName = treeView.getSelectionModel().getSelectedItem()
+				.getValue();
+		if (connectionName != null) {
+			for (DBConnection dbConnection : mainApp.getConnectionData()) {
+				if (dbConnection.getConnectionName().equals(connectionName)) {
+					mainApp.getConnectionData().remove(dbConnection);
+					break;
+				}
+			}
+
+			for (TreeItem<String> leaf : rootNode.getChildren()) {
+				if (leaf.getValue().equals(connectionName)) {
+					rootNode.getChildren().remove(leaf);
+					break;
+				}
+			}
+		}
+	}
+
 	/**
 	 * Returns true if the user clicked OK, false otherwise.
 	 * 
@@ -90,7 +229,7 @@ public class DataBaseConfigDialogController {
 	private void handleCancel() {
 		dialogStage.close();
 	}
-	
+
 	/**
 	 * Called when the user clicks cancel.
 	 */
@@ -115,13 +254,11 @@ public class DataBaseConfigDialogController {
 	private boolean isInputValid() {
 		String errorMessage = "";
 
-		if (serverIP.getText() == null
-				|| serverIP.getText().length() == 0) {
+		if (serverIP.getText() == null || serverIP.getText().length() == 0) {
 			errorMessage += "No valid server address!\n";
 		}
 
-		if (serverPort.getText() == null
-				|| serverPort.getText().length() == 0) {
+		if (serverPort.getText() == null || serverPort.getText().length() == 0) {
 			errorMessage += "No valid server port!\n";
 		}
 
@@ -130,8 +267,7 @@ public class DataBaseConfigDialogController {
 			errorMessage += "No valid data base name!\n";
 		}
 
-		if (userName.getText() == null
-				|| userName.getText().length() == 0) {
+		if (userName.getText() == null || userName.getText().length() == 0) {
 			errorMessage += "No valid username!\n";
 		}
 
@@ -145,5 +281,79 @@ public class DataBaseConfigDialogController {
 			return false;
 		}
 	}
-	
+
+	private final class TextFieldTreeCellImpl extends TreeCell<String> {
+
+		private TextField textField;
+		String oldValue;
+
+		public TextFieldTreeCellImpl() {
+		}
+
+		@Override
+		public void startEdit() {
+			super.startEdit();
+			if (textField == null) {
+				createTextField();
+			}
+			setText(null);
+			setGraphic(textField);
+			textField.selectAll();
+		}
+
+		@Override
+		public void cancelEdit() {
+			super.cancelEdit();
+			setText((String) getItem());
+			setGraphic(getTreeItem().getGraphic());
+		}
+
+		@Override
+		public void updateItem(String item, boolean empty) {
+			oldValue = getString();
+			super.updateItem(item, empty);
+
+			if (empty) {
+				setText(null);
+				setGraphic(null);
+			} else {
+				if (isEditing()) {
+					if (textField != null) {
+						textField.setText(getString());
+					}
+					setText(null);
+					setGraphic(textField);
+				} else {
+					setText(getString());
+					setGraphic(getTreeItem().getGraphic());
+					
+					if (!oldValue.equals(getString())) {
+						for (DBConnection dbConnection : mainApp.getConnectionData()) {
+							if (dbConnection.getConnectionName().equals(oldValue)) {
+								dbConnection.setConnectionName(getString());
+							}
+						}
+					}
+				}
+			}
+		}
+
+		private void createTextField() {
+
+			textField = new TextField(getString());
+			textField.setOnKeyReleased((KeyEvent t) -> {
+				if (t.getCode() == KeyCode.ENTER) {
+					commitEdit(textField.getText());
+				} else if (t.getCode() == KeyCode.ESCAPE) {
+					cancelEdit();
+				}
+			});
+		}
+
+		private String getString() {
+			return getItem() == null ? "" : getItem().toString();
+		}
+
+	}
+
 }

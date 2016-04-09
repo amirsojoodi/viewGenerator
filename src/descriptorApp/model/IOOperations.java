@@ -1,5 +1,6 @@
 package descriptorApp.model;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -9,6 +10,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
+
+import org.controlsfx.dialog.Dialogs;
+
 import com.microsoft.sqlserver.jdbc.SQLServerDataSource;
 import com.microsoft.sqlserver.jdbc.SQLServerException;
 
@@ -16,19 +23,20 @@ import descriptorApp.MainApp;
 
 public class IOOperations {
 
-	private String serverIP;
-	private String serverPort;
-	private String dbName;
-	private String dbUsername;
-	private String dbPassword;
+	private DBConnection dbConnection;
 
 	public static final String metaTableName = "MetaDescriptions";
 	public static final String successfullyUpdatedMessage = "Successfully applied changes in DataBase!\n";
+	private static final String connectionsFilePath = "connectionFile.xml";
 
+	private File connectionsFile;
 	private MainApp mainApp;
 
 	public IOOperations(MainApp mainApp) {
 		this.mainApp = mainApp;
+		dbConnection = new DBConnection();
+		connectionsFile = new File(connectionsFilePath);
+		loadConnectionDataFromFile();
 	}
 
 	public void getInitialDescriptionsFromDB(
@@ -39,11 +47,11 @@ public class IOOperations {
 		ResultSet rs = null;
 
 		SQLServerDataSource ds = new SQLServerDataSource();
-		ds.setServerName(serverIP);
-		ds.setPortNumber(Integer.parseInt(serverPort));
-		ds.setDatabaseName(dbName);
-		ds.setUser(dbUsername);
-		ds.setPassword(dbPassword);
+		ds.setServerName(dbConnection.getServerIP());
+		ds.setPortNumber(Integer.parseInt(dbConnection.getServerPort()));
+		ds.setDatabaseName(dbConnection.getDbName());
+		ds.setUser(dbConnection.getDbUsername());
+		ds.setPassword(dbConnection.getDbPassword());
 
 		try {
 			conn = ds.getConnection();
@@ -131,11 +139,11 @@ public class IOOperations {
 		ResultSet rs = null;
 
 		SQLServerDataSource ds = new SQLServerDataSource();
-		ds.setServerName(serverIP);
-		ds.setPortNumber(Integer.parseInt(serverPort));
-		ds.setDatabaseName(dbName);
-		ds.setUser(dbUsername);
-		ds.setPassword(dbPassword);
+		ds.setServerName(dbConnection.getServerIP());
+		ds.setPortNumber(Integer.parseInt(dbConnection.getServerPort()));
+		ds.setDatabaseName(dbConnection.getDbName());
+		ds.setUser(dbConnection.getDbUsername());
+		ds.setPassword(dbConnection.getDbPassword());
 
 		try {
 			conn = ds.getConnection();
@@ -219,11 +227,11 @@ public class IOOperations {
 		ResultSet rs = null;
 
 		SQLServerDataSource ds = new SQLServerDataSource();
-		ds.setServerName(serverIP);
-		ds.setPortNumber(Integer.parseInt(serverPort));
-		ds.setDatabaseName(dbName);
-		ds.setUser(dbUsername);
-		ds.setPassword(dbPassword);
+		ds.setServerName(dbConnection.getServerIP());
+		ds.setPortNumber(Integer.parseInt(dbConnection.getServerPort()));
+		ds.setDatabaseName(dbConnection.getDbName());
+		ds.setUser(dbConnection.getDbUsername());
+		ds.setPassword(dbConnection.getDbPassword());
 
 		try {
 			conn = ds.getConnection();
@@ -271,11 +279,11 @@ public class IOOperations {
 		}
 
 		SQLServerDataSource ds = new SQLServerDataSource();
-		ds.setServerName(serverIP);
-		ds.setPortNumber(Integer.parseInt(serverPort));
-		ds.setDatabaseName(dbName);
-		ds.setUser(dbUsername);
-		ds.setPassword(dbPassword);
+		ds.setServerName(dbConnection.getServerIP());
+		ds.setPortNumber(Integer.parseInt(dbConnection.getServerPort()));
+		ds.setDatabaseName(dbConnection.getDbName());
+		ds.setUser(dbConnection.getDbUsername());
+		ds.setPassword(dbConnection.getDbPassword());
 
 		try {
 			conn = ds.getConnection();
@@ -346,11 +354,11 @@ public class IOOperations {
 		}
 
 		SQLServerDataSource ds = new SQLServerDataSource();
-		ds.setServerName(serverIP);
-		ds.setPortNumber(Integer.parseInt(serverPort));
-		ds.setDatabaseName(dbName);
-		ds.setUser(dbUsername);
-		ds.setPassword(dbPassword);
+		ds.setServerName(dbConnection.getServerIP());
+		ds.setPortNumber(Integer.parseInt(dbConnection.getServerPort()));
+		ds.setDatabaseName(dbConnection.getDbName());
+		ds.setUser(dbConnection.getDbUsername());
+		ds.setPassword(dbConnection.getDbPassword());
 
 		try {
 			conn = ds.getConnection();
@@ -394,44 +402,93 @@ public class IOOperations {
 		return message;
 	}
 
+	public void loadConnectionDataFromFile() {
+		try {
+			JAXBContext context = JAXBContext
+					.newInstance(DBConnectionListWrapper.class);
+			Unmarshaller um = context.createUnmarshaller();
+
+			// Reading XML from the file and unmarshalling.
+			DBConnectionListWrapper wrapper = (DBConnectionListWrapper) um
+					.unmarshal(connectionsFile);
+
+			mainApp.getConnectionData().clear();
+			mainApp.getConnectionData().addAll(wrapper.getDbConnections());
+
+			// Save the file path to the registry.
+			// setPersonFilePath(file);
+
+		} catch (Exception e) { // catches ANY exception
+			Dialogs.create()
+					.title("Error")
+					.masthead(
+							"Could not load data from file:\n" + connectionsFile.getPath())
+					.showException(e);
+		}
+	}
+
+	public void saveConnectionDataToFile() {
+		try {
+			JAXBContext context = JAXBContext
+					.newInstance(DBConnectionListWrapper.class);
+			Marshaller m = context.createMarshaller();
+			m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+
+			// Wrapping our person data.
+			DBConnectionListWrapper wrapper = new DBConnectionListWrapper();
+			wrapper.setDbConnections(mainApp.getConnectionData());
+
+			// Marshalling and saving XML to the file.
+			m.marshal(wrapper, connectionsFile);
+
+			// Save the file path to the registry.
+			// setPersonFilePath(file);
+		} catch (Exception e) { // catches ANY exception
+			Dialogs.create()
+					.title("Error")
+					.masthead("Could not save data to file:\n" + connectionsFile.getPath())
+					.showException(e);
+		}
+	}
+
 	public String getServerIP() {
-		return serverIP;
+		return dbConnection.getServerIP();
 	}
 
 	public void setServerIP(String serverIP) {
-		this.serverIP = serverIP;
+		dbConnection.setServerIP(serverIP);
 	}
 
 	public String getServerPort() {
-		return serverPort;
+		return dbConnection.getServerPort();
 	}
 
 	public void setServerPort(String serverPort) {
-		this.serverPort = serverPort;
+		dbConnection.setServerPort(serverPort);
 	}
 
 	public String getDbName() {
-		return dbName;
+		return dbConnection.getDbName();
 	}
 
 	public void setDbName(String dbName) {
-		this.dbName = dbName;
+		dbConnection.setDbName(dbName);
 	}
 
 	public String getDbUsername() {
-		return dbUsername;
+		return dbConnection.getDbUsername();
 	}
 
 	public void setDbUsername(String dbUsername) {
-		this.dbUsername = dbUsername;
+		dbConnection.setDbUsername(dbUsername);
 	}
 
 	public String getDbPassword() {
-		return dbPassword;
+		return dbConnection.getDbPassword();
 	}
 
 	public void setDbPassword(String dbPassword) {
-		this.dbPassword = dbPassword;
+		dbConnection.setDbPassword(dbPassword);
 	}
 
 	public MainApp getMainApp() {
