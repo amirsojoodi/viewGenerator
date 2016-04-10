@@ -59,7 +59,7 @@ public class DescriptionNewDialogController {
 						if (newTableName != null) {
 							columnNameCombo.setItems(FXCollections
 									.observableArrayList(mainApp
-											.getTablesAndColumns().get(
+											.getAllTablesAndColumnsFromDB().get(
 													newTableName)));
 						}
 

@@ -72,7 +72,7 @@ public class DataBaseConfigDialogController {
 				.addListener(
 						(observable, oldValue, newValue) -> showConnectionDetails(
 								newValue, oldValue));
-
+		
 	}
 
 	private void showConnectionDetails(TreeItem<String> newValue,
@@ -143,6 +143,8 @@ public class DataBaseConfigDialogController {
 			newConnection.setConnectionName("New Connection");
 			mainApp.getConnectionData().add(newConnection);
 		}
+		
+		treeView.getSelectionModel().selectFirst();
 	}
 
 	@FXML
@@ -152,11 +154,11 @@ public class DataBaseConfigDialogController {
 		if (connectionName != null) {
 			for (DBConnection dbConnection : mainApp.getConnectionData()) {
 				if (dbConnection.getConnectionName().equals(connectionName)) {
-					serverIP.setText(dbConnection.getServerIP());
-					serverPort.setText(dbConnection.getServerPort());
-					userName.setText(dbConnection.getDbUsername());
-					password.setText(dbConnection.getDbPassword());
-					dataBaseName.setText(dbConnection.getDbName());
+					dbConnection.setServerIP(serverIP.getText());
+					dbConnection.setServerPort(serverPort.getText());
+					dbConnection.setDbUsername(userName.getText());
+					dbConnection.setDbPassword(password.getText());
+					dbConnection.setDbName(dataBaseName.getText());
 					break;
 				}
 			}

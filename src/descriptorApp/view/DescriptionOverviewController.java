@@ -139,7 +139,7 @@ public class DescriptionOverviewController {
 					.showWarning();
 			return;
 		}
-		mainApp.getIoOperations().loadAllColumnsFromDB(mainApp.getTablesAndColumns());
+		mainApp.getIoOperations().loadAllColumnsFromDB(mainApp.getTablesAndColumns(), true);
 	}
 
 	@FXML
@@ -175,13 +175,26 @@ public class DescriptionOverviewController {
 				return;
 			}
 		}
-
+		mainApp.getIoOperations().loadConnectionDataFromFile();
 		boolean okClicked = mainApp.showDataBaseConfigDialog();
 
 		if (okClicked) {
 			mainApp.initialDescriptions();
 			mainApp.setDescriptionOVerviewTableItems();
 		}
+	}
+	
+	@FXML
+	public void handleViewCreator() {
+		if (mainApp.getIoOperations().getDbName() == null) {
+			Dialogs.create().title("No DataBase added!")
+					.masthead("Please Configure a new DataBase")
+					.message("By clicking on 'Add a DataBase' button.")
+					.showWarning();
+			return;
+		}
+		
+		mainApp.showViewCreatorDialog();
 	}
 
 	@FXML

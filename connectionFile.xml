@@ -6,7 +6,7 @@
         <dbPassword>atashneshani125</dbPassword>
         <dbUsername>sa</dbUsername>
         <serverIP>127.0.0.1</serverIP>
-        <serverPort>443</serverPort>
+        <serverPort>1433</serverPort>
     </connection>
     <connection>
         <connectionName>Sess</connectionName>
@@ -14,9 +14,10 @@
         <dbPassword>$Pass@2015</dbPassword>
         <dbUsername>sa</dbUsername>
         <serverIP>185.64.176.87</serverIP>
-        <serverPort>443</serverPort>
+        <serverPort>1433</serverPort>
     </connection>
     <connection>
         <connectionName>Connection #5</connectionName>
+        <serverPort>1433</serverPort>
     </connection>
 </connections>

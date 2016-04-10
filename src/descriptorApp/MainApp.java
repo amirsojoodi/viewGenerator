@@ -15,6 +15,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import descriptorApp.model.DBConnection;
+import descriptorApp.model.DBView;
 import descriptorApp.model.Description;
 import descriptorApp.model.IOOperations;
 import descriptorApp.view.DataBaseConfigDialogController;
@@ -22,6 +23,7 @@ import descriptorApp.view.DescriptionEditDialogController;
 import descriptorApp.view.DescriptionNewDialogController;
 import descriptorApp.view.DescriptionOverviewController;
 import descriptorApp.view.RootLayoutController;
+import descriptorApp.view.ViewCreatorDialogController;
 
 public class MainApp extends Application {
 
@@ -30,6 +32,8 @@ public class MainApp extends Application {
 	// TODO New Description has this bug: tableNames and columns are retrieved
 	// from a wrong HashMap. Maybe you need to have another one to refuse many
 	// connections to DB
+	// TODO connectionsFile should be hidden and not accessible by others
+	// TODO in connections when handling new, accept the not used before names
 	private Stage primaryStage;
 	private BorderPane rootLayout;
 
@@ -37,8 +41,11 @@ public class MainApp extends Application {
 			.observableArrayList();
 	private ObservableList<DBConnection> connectionData = FXCollections
 			.observableArrayList();
+	private ObservableList<DBView> viewData = FXCollections
+			.observableArrayList();
 
 	private HashMap<String, ArrayList<String>> tablesAndColumns;
+	private HashMap<String, ArrayList<String>> allTablesAndColumnsFromDB;
 
 	private IOOperations ioOperations;
 	private DescriptionOverviewController descriptionOverviewController;
@@ -47,6 +54,7 @@ public class MainApp extends Application {
 	public MainApp() {
 		ioOperations = new IOOperations(this);
 		tablesAndColumns = new HashMap<String, ArrayList<String>>();
+		allTablesAndColumnsFromDB = new HashMap<String, ArrayList<String>>();
 	}
 
 	@Override
@@ -168,9 +176,12 @@ public class MainApp extends Application {
 			DescriptionNewDialogController controller = loader.getController();
 			controller.setDialogStage(dialogStage);
 			controller.setDescription(description);
+			if (allTablesAndColumnsFromDB.size() == 0) {
+				ioOperations.loadAllColumnsFromDB(allTablesAndColumnsFromDB, false);
+			}
 			controller.getTableNameCombo()
 					.setItems(
-							FXCollections.observableArrayList(tablesAndColumns
+							FXCollections.observableArrayList(allTablesAndColumnsFromDB
 									.keySet()));
 			controller.setMainApp(this);
 			// Show the dialog and wait until the user closes it
@@ -214,6 +225,32 @@ public class MainApp extends Application {
 		}
 	}
 
+	public void showViewCreatorDialog() {
+		try {
+			// Load description overview.
+			FXMLLoader loader = new FXMLLoader();
+			loader.setLocation(MainApp.class
+					.getResource("view/ViewCreatorDialog.fxml"));
+			AnchorPane pane = (AnchorPane) loader.load();
+
+			Stage dialogStage = new Stage();
+			dialogStage.setTitle("View Creator");
+			dialogStage.initModality(Modality.WINDOW_MODAL);
+			dialogStage.initOwner(primaryStage);
+			Scene scene = new Scene(pane);
+			dialogStage.setScene(scene);
+
+			ViewCreatorDialogController controller = loader.getController();
+			controller.setDialogStage(dialogStage);
+			controller.setMainApp(this);
+			// Show the dialog and wait until the user closes it
+			dialogStage.showAndWait();
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 	public void initialDescriptions() {
 		tablesAndColumns.clear();
 		descriptionData = FXCollections.observableArrayList();
@@ -244,6 +281,14 @@ public class MainApp extends Application {
 		this.descriptionData = descriptionData;
 	}
 
+	public ObservableList<DBView> getViewData() {
+		return viewData;
+	}
+
+	public void setViewData(ObservableList<DBView> viewData) {
+		this.viewData = viewData;
+	}
+
 	public HashMap<String, ArrayList<String>> getTablesAndColumns() {
 		return tablesAndColumns;
 	}
@@ -251,6 +296,15 @@ public class MainApp extends Application {
 	public void setTablesAndColumns(
 			HashMap<String, ArrayList<String>> tablesAndColumns) {
 		this.tablesAndColumns = tablesAndColumns;
+	}
+
+	public HashMap<String, ArrayList<String>> getAllTablesAndColumnsFromDB() {
+		return allTablesAndColumnsFromDB;
+	}
+
+	public void setAllTablesAndColumnsFromDB(
+			HashMap<String, ArrayList<String>> allTablesAndColumnsFromDB) {
+		this.allTablesAndColumnsFromDB = allTablesAndColumnsFromDB;
 	}
 
 	public IOOperations getIoOperations() {

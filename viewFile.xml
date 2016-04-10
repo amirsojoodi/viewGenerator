@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<dbViews>
+    <dbView>
+        <viewName>New View</viewName>
+    </dbView>
+    <dbView>
+        <viewName>View #2</viewName>
+    </dbView>
+    <dbView>
+        <viewName>View #3</viewName>
+    </dbView>
+    <dbView>
+        <viewName>View #4</viewName>
+    </dbView>
+</dbViews>

@@ -28,7 +28,9 @@ public class IOOperations {
 	public static final String metaTableName = "MetaDescriptions";
 	public static final String successfullyUpdatedMessage = "Successfully applied changes in DataBase!\n";
 	private static final String connectionsFilePath = "connectionFile.xml";
+	private static final String viewsFilePath = "viewFile.xml";
 
+	private File viewsFile;
 	private File connectionsFile;
 	private MainApp mainApp;
 
@@ -36,7 +38,7 @@ public class IOOperations {
 		this.mainApp = mainApp;
 		dbConnection = new DBConnection();
 		connectionsFile = new File(connectionsFilePath);
-		loadConnectionDataFromFile();
+		viewsFile = new File(viewsFilePath);
 	}
 
 	public void getInitialDescriptionsFromDB(
@@ -132,7 +134,8 @@ public class IOOperations {
 	}
 
 	public void loadAllColumnsFromDB(
-			HashMap<String, ArrayList<String>> tablesAndColumns) {
+			HashMap<String, ArrayList<String>> tablesAndColumns,
+			boolean addToAll) {
 
 		Connection conn = null;
 		Statement stmt = null;
@@ -169,11 +172,14 @@ public class IOOperations {
 				columnsOfTable = tablesAndColumns.get(tableName);
 				if (!columnsOfTable.contains(columnName)) {
 					columnsOfTable.add(columnName);
-					Description tmpDescription = new Description(tableName,
-							columnName);
-					tmpDescription.setHasChanged(true);
-					Description.hasAnyChanged.setValue(true);
-					mainApp.getDescriptionData().add(tmpDescription);
+
+					if (addToAll) {
+						Description tmpDescription = new Description(tableName,
+								columnName);
+						tmpDescription.setHasChanged(true);
+						Description.hasAnyChanged.setValue(true);
+						mainApp.getDescriptionData().add(tmpDescription);
+					}
 					// System.out.println(tableName + " : " + columnName);
 				}
 			}
@@ -422,7 +428,8 @@ public class IOOperations {
 			Dialogs.create()
 					.title("Error")
 					.masthead(
-							"Could not load data from file:\n" + connectionsFile.getPath())
+							"Could not load data from file:\n"
+									+ connectionsFile.getPath())
 					.showException(e);
 		}
 	}
@@ -446,8 +453,60 @@ public class IOOperations {
 		} catch (Exception e) { // catches ANY exception
 			Dialogs.create()
 					.title("Error")
-					.masthead("Could not save data to file:\n" + connectionsFile.getPath())
+					.masthead(
+							"Could not save data to file:\n"
+									+ connectionsFile.getPath())
 					.showException(e);
+		}
+	}
+
+	public void loadViewDataFromFile() {
+		try {
+			JAXBContext context = JAXBContext
+					.newInstance(DBViewListWrapper.class);
+			Unmarshaller um = context.createUnmarshaller();
+
+			// Reading XML from the file and unmarshalling.
+			DBViewListWrapper wrapper = (DBViewListWrapper) um
+					.unmarshal(viewsFile);
+
+			mainApp.getViewData().clear();
+			mainApp.getViewData().addAll(wrapper.getDbViews());
+
+			// Save the file path to the registry.
+			// setPersonFilePath(file);
+
+		} catch (Exception e) { // catches ANY exception
+			Dialogs.create()
+					.title("Error")
+					.masthead(
+							"Could not load data from file:\n"
+									+ viewsFile.getPath()).showException(e);
+		}
+	}
+
+	public void saveViewDataToFile() {
+		try {
+			JAXBContext context = JAXBContext
+					.newInstance(DBViewListWrapper.class);
+			Marshaller m = context.createMarshaller();
+			m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+
+			// Wrapping our person data.
+			DBViewListWrapper wrapper = new DBViewListWrapper();
+			wrapper.setDbViews(mainApp.getViewData());
+
+			// Marshalling and saving XML to the file.
+			m.marshal(wrapper, viewsFile);
+
+			// Save the file path to the registry.
+			// setPersonFilePath(file);
+		} catch (Exception e) { // catches ANY exception
+			Dialogs.create()
+					.title("Error")
+					.masthead(
+							"Could not save data to file:\n"
+									+ viewsFile.getPath()).showException(e);
 		}
 	}
 
