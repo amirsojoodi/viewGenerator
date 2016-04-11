@@ -29,9 +29,6 @@ public class MainApp extends Application {
 
 	// TODO add a button in "addDataBase" dialogue that loads data from current
 	// dataBase
-	// TODO New Description has this bug: tableNames and columns are retrieved
-	// from a wrong HashMap. Maybe you need to have another one to refuse many
-	// connections to DB
 	// TODO connectionsFile should be hidden and not accessible by others
 	// TODO in connections when handling new, accept the not used before names
 	private Stage primaryStage;
@@ -225,7 +222,7 @@ public class MainApp extends Application {
 		}
 	}
 
-	public void showViewCreatorDialog() {
+	public boolean showViewCreatorDialog() {
 		try {
 			// Load description overview.
 			FXMLLoader loader = new FXMLLoader();
@@ -243,16 +240,19 @@ public class MainApp extends Application {
 			ViewCreatorDialogController controller = loader.getController();
 			controller.setDialogStage(dialogStage);
 			controller.setMainApp(this);
+			controller.initialTablesTreeView();
 			// Show the dialog and wait until the user closes it
 			dialogStage.showAndWait();
-
+			return controller.isOkClicked();
 		} catch (IOException e) {
 			e.printStackTrace();
+			return false;
 		}
 	}
 
 	public void initialDescriptions() {
 		tablesAndColumns.clear();
+		allTablesAndColumnsFromDB.clear();
 		descriptionData = FXCollections.observableArrayList();
 		ioOperations.getInitialDescriptionsFromDB(tablesAndColumns);
 	}

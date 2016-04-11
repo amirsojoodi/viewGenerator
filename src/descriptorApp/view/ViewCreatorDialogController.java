@@ -1,30 +1,41 @@
 package descriptorApp.view;
 
+import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.geometry.Pos;
+import javafx.scene.Group;
+import javafx.scene.Scene;
+import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeTableCell;
+import javafx.scene.control.TreeTableColumn;
+import javafx.scene.control.TreeTableView;
 import javafx.scene.control.TreeView;
+import javafx.scene.control.cell.CheckBoxTreeCell;
+import javafx.scene.control.cell.CheckBoxTreeTableCell;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 
 import org.controlsfx.dialog.Dialogs;
 
 import descriptorApp.MainApp;
+import descriptorApp.model.DBColumn;
+import descriptorApp.model.DBTable;
 import descriptorApp.model.DBView;
+import descriptorApp.model.Description;
+import descriptorApp.view.Test.Employee;
 
 public class ViewCreatorDialogController {
 
 	@FXML
-	private TextArea messages;
-
-	// For selecting Views!!
-	private TreeView<String> treeView;
+	private TextArea query;
 
 	@FXML
 	private VBox vBox;
@@ -33,15 +44,30 @@ public class ViewCreatorDialogController {
 	private VBox vBoxTable;
 
 	@FXML
-	private TableView<DBView> descriptionTable;
+	private VBox vBoxTreeTable;
 
 	@FXML
-	private TableColumn<DBView, String> columnNameColumn;
+	private TreeTableView<DBColumn> descriptionTreeTable;
 
 	@FXML
-	private TableColumn<DBView, String> understandableNameColumn;
+	private TreeTableColumn<DBColumn, String> columnNameColumn;
 
-	TreeItem<String> rootNode;
+	@FXML
+	private TreeTableColumn<DBColumn, String> understandableNameColumn;
+
+	@FXML
+	private TreeTableColumn<DBColumn, Boolean> selectColumn;
+
+	TreeItem<DBColumn> rootDescriptionNode;
+
+	TreeItem<String> rootViewNode;
+
+	CheckBoxTreeItem<String> rootTableNode;
+
+	// For selecting Views!!
+	private TreeView<String> treeView;
+
+	private TreeView<String> tablesTreeView;
 
 	private Stage dialogStage;
 	MainApp mainApp;
@@ -51,24 +77,95 @@ public class ViewCreatorDialogController {
 	 * Initializes the controller class. This method is automatically called
 	 * after the fxml file has been loaded.
 	 */
+	@SuppressWarnings("unchecked")
 	@FXML
 	private void initialize() {
-		messages.setEditable(false);
-		rootNode = new TreeItem<>("Views");
+		query.setEditable(false);
 
-		rootNode.setExpanded(true);
+		rootViewNode = new TreeItem<>("Views");
+		rootViewNode.setExpanded(true);
 
-		treeView = new TreeView<String>(rootNode);
+		rootTableNode = new CheckBoxTreeItem<String>("Tables");
+		rootTableNode.setExpanded(true);
+
+		rootDescriptionNode = new TreeItem<>();
+		rootDescriptionNode.setExpanded(true);
+
+		treeView = new TreeView<String>(rootViewNode);
 		treeView.setEditable(true);
 		treeView.setCellFactory((TreeView<String> p) -> new TextFieldTreeCellImpl());
 
+		tablesTreeView = new TreeView<String>(rootTableNode);
+		tablesTreeView.setEditable(true);
+		tablesTreeView.setCellFactory(CheckBoxTreeCell.forTreeView());
+
+		descriptionTreeTable = new TreeTableView<>(rootDescriptionNode);
+		descriptionTreeTable.setPrefHeight(605);
+
 		vBox.getChildren().add(treeView);
+		vBoxTable.getChildren().add(tablesTreeView);
+		vBoxTreeTable.getChildren().add(descriptionTreeTable);
 
 		treeView.getSelectionModel()
 				.selectedItemProperty()
 				.addListener(
 						(observable, oldValue, newValue) -> showViewDetails(
 								newValue, oldValue));
+		tablesTreeView
+				.getSelectionModel()
+				.selectedItemProperty()
+				.addListener(
+						(observable, oldValue, newValue) -> showTableDetails(
+								newValue, oldValue));
+		
+		columnNameColumn = new TreeTableColumn<>("Column Name");
+		columnNameColumn.setPrefWidth(180);
+		columnNameColumn.setCellValueFactory((
+				TreeTableColumn.CellDataFeatures<DBColumn, String> param) -> {
+			if (param != null && param.getValue() != null
+					&& param.getValue().getValue() != null) {
+				return new ReadOnlyStringWrapper(param.getValue().getValue()
+						.getColumnName());
+			} else {
+				return null;
+			}
+		});
+
+		understandableNameColumn = new TreeTableColumn<>("Description");
+		understandableNameColumn.setPrefWidth(220);
+		understandableNameColumn.setCellValueFactory((
+				TreeTableColumn.CellDataFeatures<DBColumn, String> param) -> {
+			if (param != null && param.getValue() != null
+					&& param.getValue().getValue() != null) {
+				return new ReadOnlyStringWrapper(param.getValue().getValue()
+						.getDescription());
+			} else {
+				return null;
+			}
+		});
+
+		selectColumn = new TreeTableColumn<>("");
+		selectColumn.setEditable(true);
+
+		selectColumn
+				.setCellValueFactory((
+						TreeTableColumn.CellDataFeatures<DBColumn, Boolean> param) -> new SimpleBooleanProperty());
+
+		selectColumn
+				.setCellFactory(new Callback<TreeTableColumn<DBColumn, Boolean>, TreeTableCell<DBColumn, Boolean>>() {
+					@Override
+					public TreeTableCell<DBColumn, Boolean> call(
+							TreeTableColumn<DBColumn, Boolean> p) {
+						CheckBoxTreeTableCell<DBColumn, Boolean> cell = new CheckBoxTreeTableCell<DBColumn, Boolean>();
+						cell.setAlignment(Pos.CENTER);
+						cell.setEditable(true);
+						return cell;
+					}
+				});
+
+		descriptionTreeTable.getColumns().setAll(columnNameColumn,
+				understandableNameColumn, selectColumn);
+		descriptionTreeTable.setEditable(true);
 	}
 
 	private void showViewDetails(TreeItem<String> newValue,
@@ -79,7 +176,9 @@ public class ViewCreatorDialogController {
 			for (DBView dbView : mainApp.getViewData()) {
 				if (dbView.getViewName().equals(viewName)) {
 					// TODO save view details to dbView
-					break;
+					String tableName = treeView.getSelectionModel()
+							.getSelectedItem().getValue();
+					
 				}
 			}
 		} else {
@@ -91,21 +190,64 @@ public class ViewCreatorDialogController {
 		}
 
 		if (newValue != null) {
+			rootTableNode.getChildren().clear();
 			String viewName = newValue.getValue();
 			for (DBView dbView : mainApp.getViewData()) {
 				if (dbView.getViewName().equals(viewName)) {
 					// TODO get view details from dbView
+					initialTablesTreeView();
+					for (DBTable dbTable : dbView.getTables()) {
+						
+						
+						CheckBoxTreeItem<String> leaf = new CheckBoxTreeItem<String>(
+								dbTable.getTableName());
+						leaf.setSelected(true);
+						rootTableNode.getChildren().add(leaf);
+					}
+					for (String tableName : mainApp
+							.getAllTablesAndColumnsFromDB().keySet()) {
+						boolean found = false;
+						for (TreeItem<String> leaf : rootTableNode
+								.getChildren()) {
+							if (leaf.getValue().equals(tableName)) {
+								found = true;
+								break;
+							}
+						}
+						if (!found) {
+							CheckBoxTreeItem<String> leaf = new CheckBoxTreeItem<String>(
+									tableName);
+							leaf.setSelected(false);
+							rootTableNode.getChildren().add(leaf);
+						}
+					}
 					break;
 				}
 			}
 		} else {
-			// TODO empty areas
-			// serverIP.setText("");
-			// serverPort.setText("");
-			// userName.setText("");
-			// password.setText("");
-			// dataBaseName.setText("");
+			rootTableNode.getChildren().clear();
 		}
+	}
+
+	private void showTableDetails(TreeItem<String> newValue,
+			TreeItem<String> oldValue) {
+		if (oldValue != null) {
+
+		} else {
+
+		}
+
+		if (newValue != null) {
+			String tableName = newValue.getValue();
+
+		} else {
+
+		}
+
+		// employees.stream().forEach((employee) -> {
+		// root.getChildren().add(new TreeItem<>(employee));
+		// });
+
 	}
 
 	public void setDialogStage(Stage dialogStage) {
@@ -119,12 +261,11 @@ public class ViewCreatorDialogController {
 		for (DBView dbView : mainApp.getViewData()) {
 			TreeItem<String> viewLeaf = new TreeItem<String>(
 					dbView.getViewName());
-			rootNode.getChildren().add(viewLeaf);
+			rootViewNode.getChildren().add(viewLeaf);
 		}
 		if (mainApp.getViewData().size() == 0) {
-			System.out.println("view Empty");
 			DBView newView = new DBView();
-			newView.setViewName("New View");
+			newView.setViewName("View #1");
 			mainApp.getViewData().add(newView);
 		}
 	}
@@ -150,8 +291,47 @@ public class ViewCreatorDialogController {
 		mainApp.getViewData().add(newView);
 		String viewName = "View #" + mainApp.getViewData().size();
 		newView.setViewName(viewName);
-		rootNode.getChildren().add(new TreeItem<>(viewName));
+		rootViewNode.getChildren().add(new TreeItem<>(viewName));
 		treeView.getSelectionModel().selectLast();
+
+		initialView(newView);
+		initialTablesTreeView();
+
+	}
+
+	public void initialTablesTreeView() {
+		rootTableNode.getChildren().clear();
+		for (String tableName : mainApp.getTablesAndColumns().keySet()) {
+			CheckBoxTreeItem<String> leaf = new CheckBoxTreeItem<String>(
+					tableName);
+			rootTableNode.getChildren().add(leaf);
+		}
+
+	}
+
+	private void initialView(DBView newView) {
+
+		// if (mainApp.getAllTablesAndColumnsFromDB().size() == 0) {
+		// mainApp.getIoOperations().loadAllColumnsFromDB(mainApp.getAllTablesAndColumnsFromDB(),
+		// false);
+		// }
+
+		for (String tableName : mainApp.getTablesAndColumns().keySet()) {
+
+			DBTable tmpDBTable = new DBTable(tableName);
+
+			for (String columnName : mainApp.getTablesAndColumns().get(
+					tableName)) {
+				DBColumn tmpDBColumn = new DBColumn(tableName, columnName, null);
+
+			}
+		}
+
+		// When selecting table names:
+		// for (Description description : mainApp.getDescriptionData()) {
+		//
+		// }
+
 	}
 
 	@FXML
@@ -166,9 +346,9 @@ public class ViewCreatorDialogController {
 				}
 			}
 
-			for (TreeItem<String> leaf : rootNode.getChildren()) {
+			for (TreeItem<String> leaf : rootViewNode.getChildren()) {
 				if (leaf.getValue().equals(viewName)) {
-					rootNode.getChildren().remove(leaf);
+					rootViewNode.getChildren().remove(leaf);
 					break;
 				}
 			}

@@ -194,7 +194,13 @@ public class DescriptionOverviewController {
 			return;
 		}
 		
-		mainApp.showViewCreatorDialog();
+		mainApp.getIoOperations().loadViewDataFromFile();
+		boolean okClicked = mainApp.showViewCreatorDialog();
+		
+		if (okClicked) {
+			mainApp.initialDescriptions();
+			mainApp.setDescriptionOVerviewTableItems();
+		}
 	}
 
 	@FXML

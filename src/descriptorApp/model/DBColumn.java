@@ -18,28 +18,27 @@ public class DBColumn {
 		description = new SimpleStringProperty(desc);
 	}
 
-	public SimpleStringProperty getTableName() {
-		return tableName;
+	public String getTableName() {
+		return tableName.get();
 	}
 
-	public void setTableName(SimpleStringProperty tableName) {
-		this.tableName = tableName;
+	public void setTableName(String tableName) {
+		this.tableName.set(tableName);
 	}
 
-	public SimpleStringProperty getColumnName() {
-		return columnName;
+	public String getColumnName() {
+		return columnName.get();
 	}
 
-	public void setColumnName(SimpleStringProperty columnName) {
-		this.columnName = columnName;
+	public void setColumnName(String columnName) {
+		this.columnName.set(columnName);
 	}
 
-	public SimpleStringProperty getDescription() {
-		return description;
+	public String getDescription() {
+		return description.get();
 	}
 
-	public void setDescription(SimpleStringProperty description) {
-		this.description = description;
+	public void setDescription(String description) {
+		this.description.set(description);
 	}
-
 }

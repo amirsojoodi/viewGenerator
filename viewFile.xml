@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <dbViews>
     <dbView>
-        <viewName>New View</viewName>
+        <query>CREATE OR REPLACE VIEW View #1 AS SELECT StringProperty [value: null]StringProperty [value: null];</query>
+        <viewName>View #1</viewName>
     </dbView>
     <dbView>
+        <query>CREATE OR REPLACE VIEW View #2 AS SELECT StringProperty [value: null]StringProperty [value: null];</query>
         <viewName>View #2</viewName>
     </dbView>
     <dbView>
+        <query>CREATE OR REPLACE VIEW View #3 AS SELECT StringProperty [value: null]StringProperty [value: null];</query>
         <viewName>View #3</viewName>
     </dbView>
     <dbView>
-        <viewName>View #4</viewName>
+        <query>CREATE OR REPLACE VIEW Student AS SELECT StringProperty [value: null]StringProperty [value: null];</query>
+        <viewName>Student</viewName>
     </dbView>
 </dbViews>

@@ -4,140 +4,115 @@ import java.util.Arrays;
 import java.util.List;
 
 import javafx.application.Application;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.geometry.Pos;
+import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TreeCell;
+import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
+import javafx.scene.control.TreeTableCell;
+import javafx.scene.control.TreeTableColumn;
+import javafx.scene.control.TreeTableView;
+import javafx.scene.control.cell.CheckBoxTreeCell;
+import javafx.scene.control.cell.CheckBoxTreeTableCell;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 
 public class Test extends Application {
+
 	List<Employee> employees = Arrays.<Employee> asList(new Employee(
-			"Jacob Smith", "Accounts Department"), new Employee(
-			"Isabella Johnson", "Accounts Department"), new Employee(
-			"Mike Graham", "IT Support"), new Employee("Judy Mayer",
-			"IT Support"), new Employee("Gregory Smith", "IT Support"));
-	TreeItem<String> rootNode;
+			"Ethan Williams", "ethan.williams@example.com"), new Employee(
+			"Emma Jones", "emma.jones@example.com"), new Employee(
+			"Michael Brown", "michael.brown@example.com"), new Employee(
+			"Anna Black", "anna.black@example.com"), new Employee(
+			"Rodger York", "roger.york@example.com"), new Employee(
+			"Susan Collins", "susan.collins@example.com"));
+
+	final TreeItem<Employee> root = new TreeItem<>(new Employee(
+			"Sales Department", ""));
 
 	public static void main(String[] args) {
-		Application.launch(args);
-	}
-
-	public Test() {
-		this.rootNode = new TreeItem<>("MyCompany Human Resources");
+		Application.launch(Test.class, args);
 	}
 
 	@Override
 	public void start(Stage stage) {
-		rootNode.setExpanded(true);
-		for (Employee employee : employees) {
-			TreeItem<String> empLeaf = new TreeItem<>(employee.getName());
-			boolean found = false;
-			for (TreeItem<String> depNode : rootNode.getChildren()) {
-				if (depNode.getValue().contentEquals(employee.getDepartment())) {
-					depNode.getChildren().add(empLeaf);
-					found = true;
-					break;
-				}
+		root.setExpanded(true);
+		employees.stream().forEach((employee) -> {
+			root.getChildren().add(new TreeItem<>(employee));
+		});
+		Scene scene = new Scene(new Group(), 400, 400);
+		Group sceneRoot = (Group) scene.getRoot();
+
+		TreeTableColumn<Employee, String> empColumn = new TreeTableColumn<>(
+				"Employee");
+		empColumn.setPrefWidth(150);
+		empColumn
+				.setCellValueFactory((
+						TreeTableColumn.CellDataFeatures<Employee, String> param) -> new ReadOnlyStringWrapper(
+						param.getValue().getValue().getName()));
+
+		TreeTableColumn<Employee, String> emailColumn = new TreeTableColumn<>(
+				"Email");
+		emailColumn.setPrefWidth(190);
+		emailColumn
+				.setCellValueFactory((
+						TreeTableColumn.CellDataFeatures<Employee, String> param) -> new ReadOnlyStringWrapper(
+						param.getValue().getValue().getEmail()));
+
+		TreeTableColumn<Employee, Boolean> column = new TreeTableColumn<>("");
+		column.setEditable(true);
+
+		column.setCellValueFactory((
+				TreeTableColumn.CellDataFeatures<Employee, Boolean> param) -> new SimpleBooleanProperty(
+				param.getValue().getValue().getChosen()));
+		
+		column.setCellFactory(new Callback<TreeTableColumn<Employee, Boolean>, TreeTableCell<Employee, Boolean>>() {
+			@Override
+			public TreeTableCell<Employee, Boolean> call(
+					TreeTableColumn<Employee, Boolean> p) {
+				CheckBoxTreeTableCell<Employee, Boolean> cell = new CheckBoxTreeTableCell<Employee, Boolean>();
+				cell.setAlignment(Pos.CENTER);
+				cell.setEditable(true);
+				return cell;
 			}
-			if (!found) {
-				TreeItem<String> depNode = new TreeItem<>(
-						employee.getDepartment());
-				rootNode.getChildren().add(depNode);
-				depNode.getChildren().add(empLeaf);
-			}
-		}
+		});
 
-		stage.setTitle("Tree View Sample");
-		VBox box = new VBox();
-		final Scene scene = new Scene(box, 400, 300);
-		scene.setFill(Color.LIGHTGRAY);
-
-		TreeView<String> treeView = new TreeView<>(rootNode);
-		treeView.setEditable(true);
-		treeView.setCellFactory((TreeView<String> p) -> new TextFieldTreeCellImpl());
-
-		box.getChildren().add(treeView);
+		TreeTableView<Employee> treeTableView = new TreeTableView<>(root);
+		treeTableView.getColumns().setAll(empColumn, emailColumn, column);
+		treeTableView.setEditable(true);
+		sceneRoot.getChildren().add(treeTableView);
 		stage.setScene(scene);
 		stage.show();
 	}
 
-	private final class TextFieldTreeCellImpl extends TreeCell<String> {
+	public class Employee {
 
-		private TextField textField;
+		private SimpleStringProperty name;
+		private SimpleStringProperty email;
+		private SimpleBooleanProperty chosen;
 
-		public TextFieldTreeCellImpl() {
-		}
-
-		@Override
-		public void startEdit() {
-			super.startEdit();
-
-			if (textField == null) {
-				createTextField();
+		public SimpleStringProperty nameProperty() {
+			if (name == null) {
+				name = new SimpleStringProperty(this, "name");
 			}
-			setText(null);
-			setGraphic(textField);
-			textField.selectAll();
+			return name;
 		}
 
-		@Override
-		public void cancelEdit() {
-			super.cancelEdit();
-			setText((String) getItem());
-			setGraphic(getTreeItem().getGraphic());
-		}
-
-		@Override
-		public void updateItem(String item, boolean empty) {
-			super.updateItem(item, empty);
-
-			if (empty) {
-				setText(null);
-				setGraphic(null);
-			} else {
-				if (isEditing()) {
-					if (textField != null) {
-						textField.setText(getString());
-					}
-					setText(null);
-					setGraphic(textField);
-				} else {
-					setText(getString());
-					setGraphic(getTreeItem().getGraphic());
-				}
+		public SimpleStringProperty emailProperty() {
+			if (email == null) {
+				email = new SimpleStringProperty(this, "email");
 			}
+			return email;
 		}
 
-		private void createTextField() {
-			textField = new TextField(getString());
-			textField.setOnKeyReleased((KeyEvent t) -> {
-				if (t.getCode() == KeyCode.ENTER) {
-					commitEdit(textField.getText());
-				} else if (t.getCode() == KeyCode.ESCAPE) {
-					cancelEdit();
-				}
-			});
-		}
-
-		private String getString() {
-			return getItem() == null ? "" : getItem().toString();
-		}
-	}
-
-	public static class Employee {
-
-		private final SimpleStringProperty name;
-		private final SimpleStringProperty department;
-
-		private Employee(String name, String department) {
+		private Employee(String name, String email) {
 			this.name = new SimpleStringProperty(name);
-			this.department = new SimpleStringProperty(department);
+			this.email = new SimpleStringProperty(email);
+			this.chosen = new SimpleBooleanProperty(false);
 		}
 
 		public String getName() {
@@ -148,12 +123,20 @@ public class Test extends Application {
 			name.set(fName);
 		}
 
-		public String getDepartment() {
-			return department.get();
+		public String getEmail() {
+			return email.get();
 		}
 
-		public void setDepartment(String fName) {
-			department.set(fName);
+		public void setEmail(String fName) {
+			email.set(fName);
+		}
+
+		public boolean getChosen() {
+			return chosen.get();
+		}
+
+		public void setChosen(boolean chosen) {
+			this.chosen.set(chosen);
 		}
 	}
 }
