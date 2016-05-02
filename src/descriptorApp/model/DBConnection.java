@@ -1,5 +1,7 @@
 package descriptorApp.model;
 
+import java.io.File;
+
 import javafx.beans.property.SimpleStringProperty;
 
 public class DBConnection {
@@ -31,6 +33,12 @@ public class DBConnection {
 	}
 
 	public void setConnectionName(String connectionName) {
+		if(this.connectionName.get() != null && !this.connectionName.get().equals(connectionName)) {
+			File tmpFile = new File(this.connectionName.get() + "-" + IOOperations.viewsFilePath);
+			if(tmpFile.exists()){
+				tmpFile.renameTo(new File(connectionName + "-" + IOOperations.viewsFilePath));
+			}
+		}
 		this.connectionName.set(connectionName);
 	}
 

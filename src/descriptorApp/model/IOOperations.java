@@ -27,8 +27,9 @@ public class IOOperations {
 
 	public static final String metaTableName = "MetaDescriptions";
 	public static final String successfullyUpdatedMessage = "Successfully applied changes in DataBase!\n";
-	private static final String connectionsFilePath = "connectionFile.xml";
-	private static final String viewsFilePath = "viewFile.xml";
+	public static final String connectionsFilePath = "connectionFile.xml";
+	public static final String viewsFilePath = "viewFile.xml";
+	public static final String connectionTestSuccessfullMessage = "Connection Tested Successfully!";
 
 	private File viewsFile;
 	private File connectionsFile;
@@ -38,7 +39,6 @@ public class IOOperations {
 		this.mainApp = mainApp;
 		dbConnection = new DBConnection();
 		connectionsFile = new File(connectionsFilePath);
-		viewsFile = new File(viewsFilePath);
 	}
 
 	public void getInitialDescriptionsFromDB(
@@ -270,7 +270,7 @@ public class IOOperations {
 					return e.getMessage();
 				}
 		}
-		return "Connection Tested Successfully!";
+		return connectionTestSuccessfullMessage;
 	}
 
 	public String updateDescriptionsInDB(List<Description> descriptions) {
@@ -467,12 +467,21 @@ public class IOOperations {
 			Unmarshaller um = context.createUnmarshaller();
 
 			// Reading XML from the file and unmarshalling.
-			DBViewListWrapper wrapper = (DBViewListWrapper) um
-					.unmarshal(viewsFile);
+			viewsFile = new File(mainApp.getActiveConnection()
+					.getConnectionName() + "-" + viewsFilePath);
 
-			mainApp.getViewData().clear();
-			mainApp.getViewData().addAll(wrapper.getDbViews());
+			if (viewsFile.exists()) {
+				DBViewListWrapper wrapper = (DBViewListWrapper) um
+						.unmarshal(viewsFile);
 
+				mainApp.getViewData().clear();
+
+				if (wrapper != null && wrapper.getDbViews() != null) {
+					mainApp.getViewData().addAll(wrapper.getDbViews());
+				}
+			} else {
+				mainApp.getViewData().clear();
+			}
 			// Save the file path to the registry.
 			// setPersonFilePath(file);
 
@@ -497,6 +506,8 @@ public class IOOperations {
 			wrapper.setDbViews(mainApp.getViewData());
 
 			// Marshalling and saving XML to the file.
+			viewsFile = new File(mainApp.getActiveConnection()
+					.getConnectionName() + "-" + viewsFilePath);
 			m.marshal(wrapper, viewsFile);
 
 			// Save the file path to the registry.

@@ -1,5 +1,6 @@
 package descriptorApp.model;
 
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 
 public class DBColumn {
@@ -7,15 +8,24 @@ public class DBColumn {
 	private SimpleStringProperty tableName;
 	private SimpleStringProperty columnName;
 	private SimpleStringProperty description;
+	private SimpleBooleanProperty chosen;
 	
 	public DBColumn(){
-		this(null, null, null);
+		this(null, null, null, null);
 	}
 	
-	public DBColumn(String tName, String cName, String desc){
+	public DBColumn(String tName, String cName, String desc, Boolean chosen){
 		tableName = new SimpleStringProperty(tName);
 		columnName = new SimpleStringProperty(cName);
 		description = new SimpleStringProperty(desc);
+		this.chosen = new SimpleBooleanProperty(chosen);
+	}
+	
+	public DBColumn(DBColumn dbColumn){
+		tableName = new SimpleStringProperty(dbColumn.getTableName());
+		columnName = new SimpleStringProperty(dbColumn.getColumnName());
+		description = new SimpleStringProperty(dbColumn.getDescription());
+		this.chosen = new SimpleBooleanProperty(dbColumn.getChosen());
 	}
 
 	public String getTableName() {
@@ -40,5 +50,13 @@ public class DBColumn {
 
 	public void setDescription(String description) {
 		this.description.set(description);
+	}
+	
+	public Boolean getChosen(){
+		return chosen.get();
+	}
+	
+	public void setChosen(Boolean chosen){
+		this.chosen.set(chosen);
 	}
 }

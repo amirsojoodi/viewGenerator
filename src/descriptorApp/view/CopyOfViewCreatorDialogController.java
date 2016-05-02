@@ -1,13 +1,14 @@
 package descriptorApp.view;
 
-import java.util.ArrayList;
-
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.event.EventHandler;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -15,13 +16,13 @@ import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
+import javafx.scene.control.TreeTableRow;
 import javafx.scene.control.TreeTableView;
 import javafx.scene.control.TreeView;
 import javafx.scene.control.cell.CheckBoxTreeCell;
 import javafx.scene.control.cell.CheckBoxTreeTableCell;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Callback;
@@ -34,10 +35,10 @@ import descriptorApp.model.DBTable;
 import descriptorApp.model.DBView;
 import descriptorApp.model.Description;
 
-public class ViewCreatorDialogController {
+public class CopyOfViewCreatorDialogController {
 
 	@FXML
-	private TextArea queryTextArea;
+	private TextArea query;
 
 	@FXML
 	private VBox vBox;
@@ -76,11 +77,8 @@ public class ViewCreatorDialogController {
 	MainApp mainApp;
 	private boolean okClicked = false;
 
-	private SimpleStringProperty queryText;
-
 	public final static String viewTreeRootName = "Views";
 	public final static String tableTreeRootName = "Tables";
-	public final static String preMessageTextArea = "Generated Query";
 
 	/**
 	 * Initializes the controller class. This method is automatically called
@@ -89,10 +87,7 @@ public class ViewCreatorDialogController {
 	@SuppressWarnings("unchecked")
 	@FXML
 	private void initialize() {
-		queryText = new SimpleStringProperty("");
-		queryTextArea.setEditable(false);
-		queryTextArea.setWrapText(true);
-		queryTextArea.textProperty().bind(queryText);
+		query.setEditable(false);
 
 		rootViewNode = new TreeItem<>(viewTreeRootName);
 		rootViewNode.setExpanded(true);
@@ -163,13 +158,14 @@ public class ViewCreatorDialogController {
 
 		selectColumn = new TreeTableColumn<>("");
 		selectColumn.setPrefWidth(40);
+		selectColumn.setEditable(true);
 
 		selectColumn
 				.setCellValueFactory((
 						TreeTableColumn.CellDataFeatures<DBColumn, Boolean> param) -> {
 					if (param.getValue() != null
 							&& param.getValue().getValue() != null) {
-						return new SimpleBooleanProperty(param.getValue()
+						return new ReadOnlyBooleanWrapper(param.getValue()
 								.getValue().getChosen());
 					} else {
 						return null;
@@ -185,7 +181,7 @@ public class ViewCreatorDialogController {
 						CheckBoxTreeTableCell<DBColumn, Boolean> cell = new CheckBoxTreeTableCell<DBColumn, Boolean>();
 
 						cell.setAlignment(Pos.CENTER);
-						cell.setEditable(false);
+						cell.setEditable(true);
 						return cell;
 					}
 
@@ -198,7 +194,8 @@ public class ViewCreatorDialogController {
 		 */
 		descriptionTreeTable.getColumns().setAll(columnNameColumn,
 				understandableNameColumn, selectColumn);
-
+		descriptionTreeTable
+				.setRowFactory(item -> new CheckBoxTreeTableRowHack<>());
 		descriptionTreeTable.setEditable(true);
 
 		descriptionTreeTable
@@ -207,92 +204,6 @@ public class ViewCreatorDialogController {
 				.addListener(
 						(observable, oldValue, newValue) -> changeViewDetails(
 								newValue, oldValue));
-
-		descriptionTreeTable.setOnMouseClicked(new EventHandler<MouseEvent>() {
-
-			@Override
-			public void handle(MouseEvent event) {
-				boolean chosen = descriptionTreeTable.getSelectionModel()
-						.selectedItemProperty().getValue().getValue()
-						.getChosen();
-
-				int index = descriptionTreeTable.getSelectionModel()
-						.selectedIndexProperty().get() - 1;
-
-				ArrayList<DBColumn> columns = new ArrayList<>();
-				for (TreeItem<DBColumn> dbColumn : rootDescriptionNode
-						.getChildren()) {
-					DBColumn tmpDBColumn = new DBColumn(dbColumn.getValue());
-					columns.add(tmpDBColumn);
-					if (index == -1) {
-						tmpDBColumn.setChosen(!chosen);
-					}
-				}
-
-				if (index > -1) {
-					columns.get(index).setChosen(!chosen);
-				} else {
-					rootDescriptionNode.setValue(new DBColumn(
-							rootDescriptionNode.getValue().getTableName(),
-							rootDescriptionNode.getValue().getTableName(),
-							null, !chosen));
-				}
-
-				rootDescriptionNode.getChildren().clear();
-				descriptionTreeTable.setRoot(null);
-
-				for (DBColumn dbColumn : columns) {
-					TreeItem<DBColumn> leaf = new TreeItem<DBColumn>(dbColumn);
-					rootDescriptionNode.getChildren().add(leaf);
-				}
-				descriptionTreeTable.setRoot(rootDescriptionNode);
-
-				saveViewDetails();
-			}
-		});
-
-	}
-
-	protected void saveViewDetails() {
-
-		String dbTableName = tablesTreeView.getSelectionModel()
-				.selectedItemProperty().getValue().getValue();
-
-		if (selectedView.getPrimaryTable() == null) {
-			selectedView.setPrimaryTable(dbTableName);
-		}
-		boolean found = false;
-		for (DBTable dbTable : selectedView.getTables()) {
-			if (dbTable.getTableName().equals(dbTableName)) {
-
-				dbTable.getColumns().clear();
-
-				for (TreeItem<DBColumn> dbColumnTreeItem : rootDescriptionNode
-						.getChildren()) {
-
-					if (dbColumnTreeItem.getValue().getChosen()) {
-						dbTable.getColumns().add(dbColumnTreeItem.getValue());
-					}
-				}
-
-				found = true;
-				break;
-			}
-		}
-
-		if (!found) {
-			DBTable newDBTable = new DBTable(dbTableName);
-			selectedView.getTables().add(newDBTable);
-			for (TreeItem<DBColumn> dbColumnTreeItem : rootDescriptionNode
-					.getChildren()) {
-
-				if (dbColumnTreeItem.getValue().getChosen()) {
-					newDBTable.getColumns().add(dbColumnTreeItem.getValue());
-				}
-			}
-		}
-
-		setQueryText(selectedView.getQuery());
 	}
 
 	private void changeViewDetails(TreeItem<DBColumn> newValue,
@@ -305,11 +216,9 @@ public class ViewCreatorDialogController {
 		}
 
 		if (newValue != null) {
-			/*
-			 * System.out.println(newValue);
-			 * System.out.println(newValue.getValue());
-			 * System.out.println(newValue.getValue().getChosen());
-			 */
+			System.out.println(newValue);
+			System.out.println(newValue.getValue());
+			System.out.println(newValue.getValue().getChosen());
 		}
 
 	}
@@ -416,18 +325,6 @@ public class ViewCreatorDialogController {
 		} else {
 			rootDescriptionNode.getChildren().clear();
 			descriptionTreeTable.setRoot(null);
-		}
-	}
-
-	public String getQueryText() {
-		return queryText.get();
-	}
-
-	public void setQueryText(String queryText) {
-		if (queryText == null) {
-			this.queryText.set(preMessageTextArea + queryText);
-		} else {
-			this.queryText.set(queryText);
 		}
 	}
 
@@ -662,4 +559,103 @@ public class ViewCreatorDialogController {
 
 	}
 
+}
+
+class CheckBoxTreeTableRowHack<T> extends TreeTableRow<T> {
+
+	private CheckBox checkBox;
+
+	private ObservableValue<Boolean> booleanProperty;
+
+	private BooleanProperty indeterminateProperty;
+
+	public CheckBoxTreeTableRowHack() {
+		setSelectedStateCallback(item -> {
+			if (item instanceof CheckBoxTreeItem<?>) {
+				return ((CheckBoxTreeItem<?>) item).selectedProperty();
+			}
+			return null;
+		});
+		this.checkBox = new CheckBox();
+		// something weird going on with layout
+		checkBox.setAlignment(Pos.TOP_LEFT);
+	}
+
+	// --- selected state callback property
+	private ObjectProperty<Callback<TreeItem<T>, ObservableValue<Boolean>>> selectedStateCallback = new SimpleObjectProperty<Callback<TreeItem<T>, ObservableValue<Boolean>>>(
+			this, "selectedStateCallback");
+
+	/**
+	 * Property representing the {@link Callback} that is bound to by the
+	 * CheckBox shown on screen.
+	 */
+	public final ObjectProperty<Callback<TreeItem<T>, ObservableValue<Boolean>>> selectedStateCallbackProperty() {
+		return selectedStateCallback;
+	}
+
+	/**
+	 * Sets the {@link Callback} that is bound to by the CheckBox shown on
+	 * screen.
+	 */
+	public final void setSelectedStateCallback(
+			Callback<TreeItem<T>, ObservableValue<Boolean>> value) {
+		selectedStateCallbackProperty().set(value);
+	}
+
+	/**
+	 * Returns the {@link Callback} that is bound to by the CheckBox shown on
+	 * screen.
+	 */
+	public final Callback<TreeItem<T>, ObservableValue<Boolean>> getSelectedStateCallback() {
+		return selectedStateCallbackProperty().get();
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public void updateItem(T item, boolean empty) {
+		super.updateItem(item, empty);
+
+		if (empty) {
+			setText(null);
+			setGraphic(null);
+		} else {
+			//
+			TreeItem<T> treeItem = getTreeItem();
+			// PENDING JW: this is nuts but working .. certainly will pose
+			// problems
+			// when re-using the cell
+			treeItem.setGraphic(checkBox);
+			// this is what CheckBoxTreeCell does, setting the graphic
+			// of the tableRow confuses the layout
+			// checkBox.setGraphic(treeItem == null ? null :
+			// treeItem.getGraphic());
+			// setGraphic(checkBox);
+
+			// uninstall bindings
+			if (booleanProperty != null) {
+				checkBox.selectedProperty().unbindBidirectional(
+						(BooleanProperty) booleanProperty);
+			}
+			if (indeterminateProperty != null) {
+				checkBox.indeterminateProperty().unbindBidirectional(
+						indeterminateProperty);
+			}
+
+			// install new bindings.
+			// We special case things when the TreeItem is a CheckBoxTreeItem
+			if (treeItem instanceof CheckBoxTreeItem) {
+				CheckBoxTreeItem<T> cbti = (CheckBoxTreeItem<T>) treeItem;
+				booleanProperty = cbti.selectedProperty();
+				checkBox.selectedProperty().bindBidirectional(
+						(BooleanProperty) booleanProperty);
+
+				indeterminateProperty = cbti.indeterminateProperty();
+				checkBox.indeterminateProperty().bindBidirectional(
+						indeterminateProperty);
+			} else {
+				throw new IllegalStateException("item must be CheckBoxTreeItem");
+			}
+		}
+
+	}
 }

@@ -8,7 +8,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "dbViews")
 public class DBViewListWrapper {
 
-	private List<DBView>	dbViews;
+	private List<DBView> dbViews;
 
     @XmlElement(name = "dbView")
 	public List<DBView> getDbViews() {

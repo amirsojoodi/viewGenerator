@@ -17,7 +17,7 @@
         <serverPort>1433</serverPort>
     </connection>
     <connection>
-        <connectionName>Connection #5</connectionName>
-        <serverPort>1433</serverPort>
+        <connectionName>Sufa</connectionName>
+        <serverIP>12345312</serverIP>
     </connection>
 </connections>

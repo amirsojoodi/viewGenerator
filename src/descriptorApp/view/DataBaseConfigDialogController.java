@@ -16,6 +16,7 @@ import org.controlsfx.dialog.Dialogs;
 
 import descriptorApp.MainApp;
 import descriptorApp.model.DBConnection;
+import descriptorApp.model.IOOperations;
 
 public class DataBaseConfigDialogController {
 
@@ -47,6 +48,8 @@ public class DataBaseConfigDialogController {
 	private Stage dialogStage;
 	MainApp mainApp;
 	private boolean okClicked = false;
+	
+	public final static String connectionsTreeRootName = "Connections";
 
 	/**
 	 * Initializes the controller class. This method is automatically called
@@ -55,7 +58,7 @@ public class DataBaseConfigDialogController {
 	@FXML
 	private void initialize() {
 		messages.setEditable(false);
-		rootNode = new TreeItem<>("Connections");
+		rootNode = new TreeItem<>(connectionsTreeRootName);
 
 		rootNode.setExpanded(true);
 
@@ -72,13 +75,13 @@ public class DataBaseConfigDialogController {
 				.addListener(
 						(observable, oldValue, newValue) -> showConnectionDetails(
 								newValue, oldValue));
-		
+
 	}
 
 	private void showConnectionDetails(TreeItem<String> newValue,
 			TreeItem<String> oldValue) {
 
-		if (oldValue != null) {
+		if (oldValue != null && !oldValue.getValue().equals(connectionsTreeRootName)) {
 			String connectionName = oldValue.getValue();
 			for (DBConnection dbConnection : mainApp.getConnectionData()) {
 				if (dbConnection.getConnectionName().equals(connectionName)) {
@@ -98,10 +101,11 @@ public class DataBaseConfigDialogController {
 			// dbConnection.setDbPassword("");
 		}
 
-		if (newValue != null) {
+		if (newValue != null && !newValue.getValue().equals(connectionsTreeRootName)) {
 			String connectionName = newValue.getValue();
 			for (DBConnection dbConnection : mainApp.getConnectionData()) {
 				if (dbConnection.getConnectionName().equals(connectionName)) {
+					mainApp.setActiveConnection(dbConnection);
 					serverIP.setText(dbConnection.getServerIP());
 					serverPort.setText(dbConnection.getServerPort());
 					userName.setText(dbConnection.getDbUsername());
@@ -111,6 +115,7 @@ public class DataBaseConfigDialogController {
 				}
 			}
 		} else {
+			mainApp.setActiveConnection(null);
 			serverIP.setText("");
 			serverPort.setText("");
 			userName.setText("");
@@ -137,13 +142,12 @@ public class DataBaseConfigDialogController {
 					dbConnection.getConnectionName());
 			rootNode.getChildren().add(connectionLeaf);
 		}
-		if (mainApp.getConnectionData().size() == 0) {
-			System.out.println("connection Empty");
-			DBConnection newConnection = new DBConnection();
-			newConnection.setConnectionName("New Connection");
-			mainApp.getConnectionData().add(newConnection);
-		}
-		
+		// if (mainApp.getConnectionData().size() == 0) {
+		// DBConnection newConnection = new DBConnection();
+		// newConnection.setConnectionName("Connection#1");
+		// mainApp.getConnectionData().add(newConnection);
+		// }
+
 		treeView.getSelectionModel().selectFirst();
 	}
 
@@ -170,7 +174,7 @@ public class DataBaseConfigDialogController {
 	private void handleNew() {
 		DBConnection newConnection = new DBConnection();
 		mainApp.getConnectionData().add(newConnection);
-		String connectionName = "Connection #"
+		String connectionName = "Connection#"
 				+ mainApp.getConnectionData().size();
 		newConnection.setConnectionName(connectionName);
 		rootNode.getChildren().add(new TreeItem<>(connectionName));
@@ -219,8 +223,13 @@ public class DataBaseConfigDialogController {
 			mainApp.getIoOperations().setDbUsername(userName.getText());
 			mainApp.getIoOperations().setDbPassword(password.getText());
 
-			okClicked = true;
-			dialogStage.close();
+			handleCheckConnection();
+
+			if (messages.getText().equals(
+					IOOperations.connectionTestSuccessfullMessage)) {
+				okClicked = true;
+				dialogStage.close();
+			}
 		}
 	}
 
@@ -230,6 +239,7 @@ public class DataBaseConfigDialogController {
 	@FXML
 	private void handleCancel() {
 		dialogStage.close();
+		mainApp.setActiveConnection(null);
 	}
 
 	/**
@@ -328,10 +338,12 @@ public class DataBaseConfigDialogController {
 				} else {
 					setText(getString());
 					setGraphic(getTreeItem().getGraphic());
-					
+
 					if (!oldValue.equals(getString())) {
-						for (DBConnection dbConnection : mainApp.getConnectionData()) {
-							if (dbConnection.getConnectionName().equals(oldValue)) {
+						for (DBConnection dbConnection : mainApp
+								.getConnectionData()) {
+							if (dbConnection.getConnectionName().equals(
+									oldValue)) {
 								dbConnection.setConnectionName(getString());
 							}
 						}

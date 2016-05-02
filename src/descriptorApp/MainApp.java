@@ -31,6 +31,15 @@ public class MainApp extends Application {
 	// dataBase
 	// TODO connectionsFile should be hidden and not accessible by others
 	// TODO in connections when handling new, accept the not used before names
+	// TODO when creating new connection, a new file have to be assigned to the
+	// connection view [when changing the name of a connection the name of its
+	// related file have to be changed too
+	// TODO implement and add button for search
+	// TODO add delete table functionality in description page
+	// TODO preventing to set name "Views" and "Connections" for corresponding treeView(s)
+	// TODO preview
+	// TODO Execute Query
+
 	private Stage primaryStage;
 	private BorderPane rootLayout;
 
@@ -47,6 +56,8 @@ public class MainApp extends Application {
 	private IOOperations ioOperations;
 	private DescriptionOverviewController descriptionOverviewController;
 	private RootLayoutController rootLayoutController;
+	
+	private DBConnection activeConnection;
 
 	public MainApp() {
 		ioOperations = new IOOperations(this);
@@ -174,12 +185,12 @@ public class MainApp extends Application {
 			controller.setDialogStage(dialogStage);
 			controller.setDescription(description);
 			if (allTablesAndColumnsFromDB.size() == 0) {
-				ioOperations.loadAllColumnsFromDB(allTablesAndColumnsFromDB, false);
+				ioOperations.loadAllColumnsFromDB(allTablesAndColumnsFromDB,
+						false);
 			}
-			controller.getTableNameCombo()
-					.setItems(
-							FXCollections.observableArrayList(allTablesAndColumnsFromDB
-									.keySet()));
+			controller.getTableNameCombo().setItems(
+					FXCollections.observableArrayList(allTablesAndColumnsFromDB
+							.keySet()));
 			controller.setMainApp(this);
 			// Show the dialog and wait until the user closes it
 			dialogStage.showAndWait();
@@ -240,7 +251,7 @@ public class MainApp extends Application {
 			ViewCreatorDialogController controller = loader.getController();
 			controller.setDialogStage(dialogStage);
 			controller.setMainApp(this);
-			controller.initialTablesTreeView();
+			// controller.initialTablesTreeView();
 			// Show the dialog and wait until the user closes it
 			dialogStage.showAndWait();
 			return controller.isOkClicked();
@@ -313,6 +324,14 @@ public class MainApp extends Application {
 
 	public void setIoOperations(IOOperations ioOperations) {
 		this.ioOperations = ioOperations;
+	}
+
+	public DBConnection getActiveConnection() {
+		return activeConnection;
+	}
+
+	public void setActiveConnection(DBConnection activeConnection) {
+		this.activeConnection = activeConnection;
 	}
 
 	public static void main(String[] args) {

@@ -6,6 +6,7 @@ import javafx.beans.property.SimpleStringProperty;
 
 public class DBView {
 
+	private SimpleStringProperty dbConnectionName;
 	private SimpleStringProperty viewName;
 	private SimpleStringProperty primaryTable;
 	private SimpleStringProperty whereClause;
@@ -16,10 +17,12 @@ public class DBView {
 	private ArrayList<DBJoin> joins;
 
 	public DBView() {
-		this(null, null, null, null);
+		this(null, null, null, null, null);
 	}
 
-	public DBView(String vName, String pTable, String whereClause, String query) {
+	public DBView(String dbConnectionName, String vName, String pTable,
+			String whereClause, String query) {
+		this.dbConnectionName = new SimpleStringProperty(dbConnectionName);
 		this.viewName = new SimpleStringProperty(vName);
 		this.primaryTable = new SimpleStringProperty(pTable);
 		this.whereClause = new SimpleStringProperty(whereClause);
@@ -27,6 +30,14 @@ public class DBView {
 
 		tables = new ArrayList<DBTable>();
 		joins = new ArrayList<DBJoin>();
+	}
+
+	public String getDbConnectionName() {
+		return dbConnectionName.get();
+	}
+
+	public void setDbConnectionName(String dbConnectionName) {
+		this.dbConnectionName.set(dbConnectionName);
 	}
 
 	public String getViewName() {
@@ -54,13 +65,19 @@ public class DBView {
 	}
 
 	public String getQuery() {
-		String q = "CREATE OR REPLACE VIEW " + getViewName() + " AS SELECT ";
+		String q = "CREATE OR REPLACE VIEW " + getViewName();
+
+		if (tables.size() > 0) {
+			q += " AS SELECT ";
+		}
 
 		for (DBTable dbTable : tables) {
 			if (dbTable.getTableName().equals("*")) {
 				q += "* ";
 				break;
 			}
+
+			boolean commaAdded = false;
 			for (DBColumn dbColumn : dbTable.getColumns()) {
 				if (dbColumn.getColumnName().equals("*")) {
 					q += dbColumn.getTableName() + ".* ";
@@ -68,13 +85,18 @@ public class DBView {
 				}
 				q += dbColumn.getTableName() + "." + dbColumn.getColumnName();
 				if (dbColumn.getDescription() != null) {
-					q += " AS " + dbColumn.getDescription();
+					q += " AS '" + dbColumn.getDescription() + "'";
 				}
 				q += ", ";
+				commaAdded = true;
+			}
+			if (commaAdded) {
+				q.substring(0, q.length() - 2);
 			}
 		}
-
-		q += primaryTable;
+		if (primaryTable.get() != null) {
+			q += " FROM " + primaryTable.get() + " ";
+		}
 
 		for (DBJoin dbJoin : joins) {
 			q += "JOIN " + dbJoin.getTableName();
@@ -84,7 +106,10 @@ public class DBView {
 					+ dbJoin.getRightColumnName() + " ";
 		}
 
-		q += whereClause + ";";
+		if (whereClause.get() != null) {
+			q += whereClause.get();
+		}
+		q += ";";
 
 		query.set(q);
 		return q;
@@ -110,4 +135,12 @@ public class DBView {
 		this.joins = joins;
 	}
 
+	public ArrayList<DBColumn> getColumnsOf(String dbTable) {
+		for (DBTable table : getTables()) {
+			if (table.getTableName().equals(dbTable)) {
+				return table.getColumns();
+			}
+		}
+		return null;
+	}
 }
