@@ -1,6 +1,8 @@
 package descriptorApp.model;
 
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -10,11 +12,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-
-import org.controlsfx.dialog.Dialogs;
 
 import com.microsoft.sqlserver.jdbc.SQLServerDataSource;
 import com.microsoft.sqlserver.jdbc.SQLServerException;
@@ -30,8 +37,9 @@ public class IOOperations {
 	public static final String connectionsFilePath = "connectionFile.xml";
 	public static final String viewsFilePath = "viewFile.xml";
 	public static final String connectionTestSuccessfullMessage = "Connection Tested Successfully!";
+	public static final String connectionTestUnsuccessfullMessage = "Connection is not Valid!";
 
-	private File viewsFile;
+	// private File viewsFile;
 	private File connectionsFile;
 	private MainApp mainApp;
 
@@ -239,13 +247,19 @@ public class IOOperations {
 		ds.setUser(dbConnection.getDbUsername());
 		ds.setPassword(dbConnection.getDbPassword());
 
+		boolean reachable;
+
 		try {
 			conn = ds.getConnection();
-			String selectFromMetaDescriptions = "SELECT id, tableName, columnName, understandableName, description "
-					+ "FROM " + metaTableName;
-			stmt = conn.createStatement();
-			rs = stmt.executeQuery(selectFromMetaDescriptions);
-			rs.close();
+
+			reachable = conn.isValid(10);// 10 sec
+
+			// String selectFromMetaDescriptions =
+			// "SELECT id, tableName, columnName, understandableName, description "
+			// + "FROM " + metaTableName;
+			// stmt = conn.createStatement();
+			// rs = stmt.executeQuery(selectFromMetaDescriptions);
+			// rs.close();
 		} catch (SQLServerException e) {
 			return e.getMessage();
 		} catch (SQLException e) {
@@ -270,7 +284,10 @@ public class IOOperations {
 					return e.getMessage();
 				}
 		}
-		return connectionTestSuccessfullMessage;
+		if (reachable) {
+			return connectionTestSuccessfullMessage;
+		}
+		return connectionTestUnsuccessfullMessage;
 	}
 
 	public String updateDescriptionsInDB(List<Description> descriptions) {
@@ -425,12 +442,8 @@ public class IOOperations {
 			// setPersonFilePath(file);
 
 		} catch (Exception e) { // catches ANY exception
-			Dialogs.create()
-					.title("Error")
-					.masthead(
-							"Could not load data from file:\n"
-									+ connectionsFile.getPath())
-					.showException(e);
+			showException(e, "Error", "Could not save data to file!",
+					connectionsFile.getPath());
 		}
 	}
 
@@ -451,75 +464,89 @@ public class IOOperations {
 			// Save the file path to the registry.
 			// setPersonFilePath(file);
 		} catch (Exception e) { // catches ANY exception
-			Dialogs.create()
-					.title("Error")
-					.masthead(
-							"Could not save data to file:\n"
-									+ connectionsFile.getPath())
-					.showException(e);
+			showException(e, "Error", "Could not save data to file!",
+					connectionsFile.getPath());
 		}
 	}
 
-	public void loadViewDataFromFile() {
-		try {
-			JAXBContext context = JAXBContext
-					.newInstance(DBViewListWrapper.class);
-			Unmarshaller um = context.createUnmarshaller();
+	public void showException(Exception e, String title, String body,
+			String content) {
+		Alert alert = new Alert(AlertType.ERROR);
+		alert.setTitle(title);
+		alert.setHeaderText(body);
+		alert.setContentText(content);
 
-			// Reading XML from the file and unmarshalling.
-			viewsFile = new File(mainApp.getActiveConnection()
-					.getConnectionName() + "-" + viewsFilePath);
+		Exception ex = new Exception("Could not find file blabla.txt");
 
-			if (viewsFile.exists()) {
-				DBViewListWrapper wrapper = (DBViewListWrapper) um
-						.unmarshal(viewsFile);
+		// Create expandable Exception.
+		StringWriter sw = new StringWriter();
+		PrintWriter pw = new PrintWriter(sw);
+		ex.printStackTrace(pw);
+		String exceptionText = sw.toString();
 
-				mainApp.getViewData().clear();
+		Label label = new Label("The exception stacktrace was:");
 
-				if (wrapper != null && wrapper.getDbViews() != null) {
-					mainApp.getViewData().addAll(wrapper.getDbViews());
-				}
-			} else {
-				mainApp.getViewData().clear();
-			}
-			// Save the file path to the registry.
-			// setPersonFilePath(file);
+		TextArea textArea = new TextArea(exceptionText);
+		textArea.setEditable(false);
+		textArea.setWrapText(true);
 
-		} catch (Exception e) { // catches ANY exception
-			Dialogs.create()
-					.title("Error")
-					.masthead(
-							"Could not load data from file:\n"
-									+ viewsFile.getPath()).showException(e);
-		}
+		textArea.setMaxWidth(Double.MAX_VALUE);
+		textArea.setMaxHeight(Double.MAX_VALUE);
+		GridPane.setVgrow(textArea, Priority.ALWAYS);
+		GridPane.setHgrow(textArea, Priority.ALWAYS);
+
+		GridPane expContent = new GridPane();
+		expContent.setMaxWidth(Double.MAX_VALUE);
+		expContent.add(label, 0, 0);
+		expContent.add(textArea, 0, 1);
+
+		// Set expandable Exception into the dialog pane.
+		alert.getDialogPane().setExpandableContent(expContent);
+
+		alert.showAndWait();
 	}
 
-	public void saveViewDataToFile() {
-		try {
-			JAXBContext context = JAXBContext
-					.newInstance(DBViewListWrapper.class);
-			Marshaller m = context.createMarshaller();
-			m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-
-			// Wrapping our person data.
-			DBViewListWrapper wrapper = new DBViewListWrapper();
-			wrapper.setDbViews(mainApp.getViewData());
-
-			// Marshalling and saving XML to the file.
-			viewsFile = new File(mainApp.getActiveConnection()
-					.getConnectionName() + "-" + viewsFilePath);
-			m.marshal(wrapper, viewsFile);
-
-			// Save the file path to the registry.
-			// setPersonFilePath(file);
-		} catch (Exception e) { // catches ANY exception
-			Dialogs.create()
-					.title("Error")
-					.masthead(
-							"Could not save data to file:\n"
-									+ viewsFile.getPath()).showException(e);
-		}
-	}
+	/*
+	 * public void loadViewDataFromFile() { try { JAXBContext context =
+	 * JAXBContext .newInstance(DBViewListWrapper.class); Unmarshaller um =
+	 * context.createUnmarshaller();
+	 * 
+	 * // Reading XML from the file and unmarshalling. viewsFile = new
+	 * File(mainApp.getActiveConnection() .getConnectionName() + "-" +
+	 * viewsFilePath);
+	 * 
+	 * if (viewsFile.exists()) { DBViewListWrapper wrapper = (DBViewListWrapper)
+	 * um .unmarshal(viewsFile);
+	 * 
+	 * mainApp.getViewData().clear();
+	 * 
+	 * if (wrapper != null && wrapper.getDbViews() != null) {
+	 * mainApp.getViewData().addAll(wrapper.getDbViews()); } } else {
+	 * mainApp.getViewData().clear(); } // Save the file path to the registry.
+	 * // setPersonFilePath(file);
+	 * 
+	 * } catch (Exception e) { // catches ANY exception e.printStackTrace();
+	 * Dialogs.create().title("Error")
+	 * .masthead("Could not load data from view file!\n") .showException(e); } }
+	 */
+	/*
+	 * public void saveViewDataToFile() { try { JAXBContext context =
+	 * JAXBContext .newInstance(DBViewListWrapper.class); Marshaller m =
+	 * context.createMarshaller();
+	 * m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+	 * 
+	 * // Wrapping our person data. DBViewListWrapper wrapper = new
+	 * DBViewListWrapper(); wrapper.setDbViews(mainApp.getViewData());
+	 * 
+	 * // Marshalling and saving XML to the file. viewsFile = new
+	 * File(mainApp.getActiveConnection() .getConnectionName() + "-" +
+	 * viewsFilePath); m.marshal(wrapper, viewsFile);
+	 * 
+	 * // Save the file path to the registry. // setPersonFilePath(file); }
+	 * catch (Exception e) { // catches ANY exception Dialogs.create()
+	 * .title("Error") .masthead( "Could not save data to file:\n" +
+	 * viewsFile.getPath()).showException(e); } }
+	 */
 
 	public String getServerIP() {
 		return dbConnection.getServerIP();

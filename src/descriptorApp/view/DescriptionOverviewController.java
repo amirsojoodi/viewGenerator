@@ -1,15 +1,15 @@
 package descriptorApp.view;
 
+import java.util.Optional;
+
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-
-import org.controlsfx.control.action.Action;
-import org.controlsfx.dialog.Dialog.Actions;
-import org.controlsfx.dialog.Dialogs;
-
 import descriptorApp.MainApp;
 import descriptorApp.model.Description;
 import descriptorApp.model.IOOperations;
@@ -107,20 +107,22 @@ public class DescriptionOverviewController {
 			Description.hasAnyChanged.setValue(true);
 		} else {
 			// Nothing selected.
-			Dialogs.create().title("No Selection")
-					.masthead("No Description Selected")
-					.message("Please select a description in the table.")
-					.showWarning();
+			Alert alert = new Alert(AlertType.WARNING);
+			alert.setTitle("No Selection");
+			alert.setHeaderText("No Description Selected");
+			alert.setContentText("Please select a description in the table.");
+			alert.showAndWait();
 		}
 	}
 
 	@FXML
 	public void handleNewDescription() {
 		if (mainApp.getIoOperations().getDbName() == null) {
-			Dialogs.create().title("No DataBase added!")
-					.masthead("Please Configure a new DataBase")
-					.message("By clicking on 'Add a DataBase' button.")
-					.showWarning();
+			Alert alert = new Alert(AlertType.WARNING);
+			alert.setTitle("No DataBase added!");
+			alert.setHeaderText("Please Configure a new DataBase");
+			alert.setContentText("By clicking on 'Add a DataBase' button.");
+			alert.showAndWait();
 			return;
 		}
 		Description tempDescription = new Description();
@@ -133,13 +135,15 @@ public class DescriptionOverviewController {
 	@FXML
 	public void handleLoadAllColumns() {
 		if (mainApp.getIoOperations().getDbName() == null) {
-			Dialogs.create().title("No DataBase added!")
-					.masthead("Please Configure a new DataBase")
-					.message("By clicking on 'Add a DataBase' button.")
-					.showWarning();
+			Alert alert = new Alert(AlertType.WARNING);
+			alert.setTitle("No DataBase added!");
+			alert.setHeaderText("Please Configure a new DataBase");
+			alert.setContentText("By clicking on 'Add a DataBase' button.");
+			alert.showAndWait();
 			return;
 		}
-		mainApp.getIoOperations().loadAllColumnsFromDB(mainApp.getTablesAndColumns(), true);
+		mainApp.getIoOperations().loadAllColumnsFromDB(
+				mainApp.getTablesAndColumns(), true);
 	}
 
 	@FXML
@@ -155,23 +159,33 @@ public class DescriptionOverviewController {
 
 		} else {
 			// Nothing selected.
-			Dialogs.create().title("No Selection")
-					.masthead("No Description Selected")
-					.message("Please select a description in the table.")
-					.showWarning();
+			Alert alert = new Alert(AlertType.WARNING);
+			alert.setTitle("No Selection");
+			alert.setHeaderText("No Description Selected");
+			alert.setContentText("Please select a description in the table.");
+			alert.showAndWait();
 		}
 	}
 
 	@FXML
 	public void handleAddDataBase() {
 		if (Description.hasAnyChanged.getValue() == true) {
-			Action dialogAction = Dialogs.create().title("Unsaved Data")
-					.masthead("You have unsaved changes.")
-					.message("Do you want to apply changes?").showConfirm();
-			if (dialogAction == Actions.YES || dialogAction == Actions.OK) {
+			Alert alert = new Alert(AlertType.CONFIRMATION);
+			alert.setTitle("Unsaved Data");
+			alert.setHeaderText("You have unsaved changes.");
+			alert.setContentText("Do you want to apply changes?");
+
+			Optional<ButtonType> result = alert.showAndWait();
+			if (result.get() == ButtonType.OK){
+			    // ... user chose OK
+			} else {
+			    // ... user chose CANCEL or closed the dialog
+			}
+			
+			if (result.get() == ButtonType.OK || result.get() == ButtonType.YES) {
 				handleApplyChanges();
-			} else if (dialogAction == Actions.CLOSE
-					|| dialogAction == Actions.CANCEL) {
+			} else if (result.get() == ButtonType.CLOSE
+					|| result.get() == ButtonType.CANCEL) {
 				return;
 			}
 		}
@@ -183,20 +197,21 @@ public class DescriptionOverviewController {
 			mainApp.setDescriptionOVerviewTableItems();
 		}
 	}
-	
+
 	@FXML
 	public void handleViewCreator() {
 		if (mainApp.getIoOperations().getDbName() == null) {
-			Dialogs.create().title("No DataBase added!")
-					.masthead("Please Configure a new DataBase")
-					.message("By clicking on 'Add a DataBase' button.")
-					.showWarning();
+			Alert alert = new Alert(AlertType.WARNING);
+			alert.setTitle("No DataBase added!");
+			alert.setHeaderText("Please Configure a new DataBase");
+			alert.setContentText("By clicking on 'Add a DataBase' button.");
+			alert.showAndWait();
 			return;
 		}
-		
-		mainApp.getIoOperations().loadViewDataFromFile();
+
+		// mainApp.getIoOperations().loadViewDataFromFile();
 		boolean okClicked = mainApp.showViewCreatorDialog();
-		
+
 		if (okClicked) {
 			mainApp.initialDescriptions();
 			mainApp.setDescriptionOVerviewTableItems();
@@ -222,18 +237,20 @@ public class DescriptionOverviewController {
 			String message = mainApp.getIoOperations().updateDescriptionsInDB(
 					descriptionTable.getItems());
 			if (message.equals(IOOperations.successfullyUpdatedMessage)) {
-				Dialogs.create()
-						.title("Action successfully completed!")
-						.masthead("Your changes saved.")
-						.message(
-								"All changes saved in DataBase "
-										+ mainApp.getIoOperations().getDbName())
-						.showInformation();
+				Alert alert = new Alert(AlertType.INFORMATION);
+				alert.setTitle("Action successfully completed!");
+				alert.setHeaderText("Your changes saved.");
+				alert.setContentText("All changes saved in DataBase "
+						+ mainApp.getIoOperations().getDbName());
+				alert.showAndWait();
+
 				Description.hasAnyChanged.setValue(false);
 			} else {
-				Dialogs.create().title("Action was not completed!")
-						.masthead("Your changes didn't saved.")
-						.message(message).showError();
+				Alert alert = new Alert(AlertType.ERROR);
+				alert.setTitle("Action was not completed!");
+				alert.setHeaderText("Your changes didn't saved.");
+				alert.setContentText("Action was not completed!");
+				alert.showAndWait();
 			}
 
 			message = mainApp.getIoOperations().deleteDescriptionsInDB(
@@ -250,11 +267,11 @@ public class DescriptionOverviewController {
 						.getValue() | false);
 				Description.getDeletedDescriptions().clear();
 			} else {
-				Dialogs.create()
-						.title("Action was not completed!")
-						.masthead(
-								"Deleted descriptions didn't delete from DataBase.")
-						.message(message).showError();
+				Alert alert = new Alert(AlertType.ERROR);
+				alert.setTitle("Action was not completed!");
+				alert.setHeaderText("Deleted descriptions didn't delete from DataBase.");
+				alert.setContentText("Action was not completed!");
+				alert.showAndWait();
 			}
 		}
 	}
@@ -269,22 +286,21 @@ public class DescriptionOverviewController {
 	@FXML
 	public void handleDeleteAllDescriptions() {
 		if (mainApp.getIoOperations().getDbName() == null) {
-			Dialogs.create().title("No DataBase added!")
-					.masthead("Please Configure a new DataBase")
-					.message("By clicking on 'Add a DataBase' button.")
-					.showWarning();
+			Alert alert = new Alert(AlertType.WARNING);
+			alert.setTitle("No DataBase added!");
+			alert.setHeaderText("Please Configure a new DataBase");
+			alert.setContentText("By clicking on 'Add a DataBase' button.");
+			alert.showAndWait();
 			return;
 		}
 
-		Action dialogAction = Dialogs
-				.create()
-				.title("Your descriptions are going to be deleted.")
-				.masthead("Are you sure about this action?")
-				.message(
-						"Your changes will not affect dataBase content right now.")
-				.showConfirm();
+		Alert alert = new Alert(AlertType.CONFIRMATION);
+		alert.setTitle("Your descriptions are going to be deleted.");
+		alert.setHeaderText("Are you sure about this action?");
+		alert.setContentText("Your changes will not affect dataBase content right now.");
 
-		if (dialogAction == Actions.OK || dialogAction == Actions.YES) {
+		Optional<ButtonType> result = alert.showAndWait();
+		if (result.get() == ButtonType.OK){
 			while (descriptionTable.getItems().size() > 0) {
 				descriptionTable.getItems().get(0).addToDeletedDescriptions();
 				descriptionTable.getItems().remove(0);
@@ -292,7 +308,6 @@ public class DescriptionOverviewController {
 			Description.hasAnyChanged.setValue(true);
 		}
 	}
-
 
 	public TableView<Description> getDescriptionTable() {
 		return descriptionTable;

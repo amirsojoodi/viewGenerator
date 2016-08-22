@@ -1,19 +1,18 @@
 package descriptorApp.view;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-
-import org.controlsfx.dialog.Dialogs;
-
 import descriptorApp.MainApp;
 import descriptorApp.model.DBConnection;
 import descriptorApp.model.IOOperations;
@@ -287,9 +286,11 @@ public class DataBaseConfigDialogController {
 			return true;
 		} else {
 			// Show the error message.
-			Dialogs.create().title("Invalid Fields")
-					.masthead("Please correct invalid fields")
-					.message(errorMessage).showError();
+			Alert alert = new Alert(AlertType.ERROR);
+			alert.setTitle("Invalid Fields");
+			alert.setHeaderText("Please correct invalid fields");
+			alert.setContentText("Invalide Fields.");
+			alert.showAndWait();
 			return false;
 		}
 	}

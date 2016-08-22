@@ -1,12 +1,12 @@
 package descriptorApp.view;
 
+import java.util.Optional;
+
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.MenuItem;
-
-import org.controlsfx.control.action.Action;
-import org.controlsfx.dialog.Dialog.Actions;
-import org.controlsfx.dialog.Dialogs;
-
 import descriptorApp.MainApp;
 import descriptorApp.model.Description;
 
@@ -92,21 +92,25 @@ public class RootLayoutController {
 
 	@FXML
 	private void handleAbout() {
-		Dialogs.create().title("DescriptionApp").masthead("v1.0")
-				.message("by Amir Hossein Sojoodi. ShirazU, ICTC - 2016")
-				.showInformation();
+		Alert alert = new Alert(AlertType.INFORMATION);
+		alert.setTitle("DBDescriptionApp");
+		alert.setHeaderText("v1.0");
+		alert.setContentText("by Amir Hossein Sojoodi. ShirazU, ICTC - 2016");
+		alert.showAndWait();
 	}
 
 	@FXML
 	private void handleExit() {
 		if (Description.hasAnyChanged.getValue() == true) {
-			Action dialogAction = Dialogs.create().title("Unsaved Data")
-					.masthead("You have unsaved changes.")
-					.message("Do you want to apply changes?").showConfirm();
-			if (dialogAction == Actions.YES || dialogAction == Actions.OK) {
+			Alert alert = new Alert(AlertType.CONFIRMATION);
+			alert.setTitle("Unsaved Data");
+			alert.setHeaderText("You have unsaved changes.");
+			alert.setContentText("Do you want to apply changes?");
+
+			Optional<ButtonType> result = alert.showAndWait();
+			if (result.get() == ButtonType.OK || result.get() == ButtonType.YES){
 				handleSave();
-			} else if (dialogAction == Actions.CLOSE
-					|| dialogAction == Actions.CANCEL) {
+			} else {
 				return;
 			}
 		}

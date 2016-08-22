@@ -11,10 +11,10 @@ public class DBView {
 	private SimpleStringProperty primaryTable;
 	private SimpleStringProperty whereClause;
 	private SimpleStringProperty query;
-
+	
 	private ArrayList<DBTable> tables;
 
-	private ArrayList<DBJoin> joins;
+	// private ArrayList<DBJoin> joins;
 
 	public DBView() {
 		this(null, null, null, null, null);
@@ -29,7 +29,7 @@ public class DBView {
 		this.query = new SimpleStringProperty(query);
 
 		tables = new ArrayList<DBTable>();
-		joins = new ArrayList<DBJoin>();
+		// joins = new ArrayList<DBJoin>();
 	}
 
 	public String getDbConnectionName() {
@@ -91,20 +91,20 @@ public class DBView {
 				commaAdded = true;
 			}
 			if (commaAdded) {
-				q.substring(0, q.length() - 2);
+				q = q.substring(0, q.length() - 2);
 			}
 		}
 		if (primaryTable.get() != null) {
 			q += " FROM " + primaryTable.get() + " ";
 		}
 
-		for (DBJoin dbJoin : joins) {
-			q += "JOIN " + dbJoin.getTableName();
-			q += " ON " + dbJoin.getLeftTableName() + "."
-					+ dbJoin.getLeftColumnName() + " = "
-					+ dbJoin.getRightTableName() + "."
-					+ dbJoin.getRightColumnName() + " ";
-		}
+		// for (DBJoin dbJoin : joins) {
+		// q += "JOIN " + dbJoin.getTableName();
+		// q += " ON " + dbJoin.getLeftTableName() + "."
+		// + dbJoin.getLeftColumnName() + " = "
+		// + dbJoin.getRightTableName() + "."
+		// + dbJoin.getRightColumnName() + " ";
+		// }
 
 		if (whereClause.get() != null) {
 			q += whereClause.get();
@@ -122,18 +122,18 @@ public class DBView {
 	public ArrayList<DBTable> getTables() {
 		return tables;
 	}
-
+	
 	public void setTables(ArrayList<DBTable> tables) {
 		this.tables = tables;
 	}
 
-	public ArrayList<DBJoin> getJoins() {
-		return joins;
-	}
-
-	public void setJoins(ArrayList<DBJoin> joins) {
-		this.joins = joins;
-	}
+	// public ArrayList<DBJoin> getJoins() {
+	// return joins;
+	// }
+	//
+	// public void setJoins(ArrayList<DBJoin> joins) {
+	// this.joins = joins;
+	// }
 
 	public ArrayList<DBColumn> getColumnsOf(String dbTable) {
 		for (DBTable table : getTables()) {

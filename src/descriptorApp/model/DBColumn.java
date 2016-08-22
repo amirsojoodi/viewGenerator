@@ -14,18 +14,18 @@ public class DBColumn {
 		this(null, null, null, null);
 	}
 	
-	public DBColumn(String tName, String cName, String desc, Boolean chosen){
+	public DBColumn(String tName, String cName, String desc, Boolean chsn){
 		tableName = new SimpleStringProperty(tName);
 		columnName = new SimpleStringProperty(cName);
 		description = new SimpleStringProperty(desc);
-		this.chosen = new SimpleBooleanProperty(chosen);
+		chosen = new SimpleBooleanProperty((chsn != null)? chsn : false);
 	}
 	
 	public DBColumn(DBColumn dbColumn){
 		tableName = new SimpleStringProperty(dbColumn.getTableName());
 		columnName = new SimpleStringProperty(dbColumn.getColumnName());
 		description = new SimpleStringProperty(dbColumn.getDescription());
-		this.chosen = new SimpleBooleanProperty(dbColumn.getChosen());
+		chosen = new SimpleBooleanProperty(dbColumn.getChosen());
 	}
 
 	public String getTableName() {

@@ -4,12 +4,11 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-
-import org.controlsfx.dialog.Dialogs;
-
 import descriptorApp.MainApp;
 import descriptorApp.model.Description;
 
@@ -161,9 +160,11 @@ public class DescriptionNewDialogController {
 			return true;
 		} else {
 			// Show the error message.
-			Dialogs.create().title("Invalid Fields")
-					.masthead("Please correct invalid fields")
-					.message(errorMessage).showError();
+			Alert alert = new Alert(AlertType.ERROR);
+			alert.setTitle("Invalid Fields");
+			alert.setHeaderText("Please correct invalid fields");
+			alert.setContentText("Invalide Fields.");
+			alert.showAndWait();
 			return false;
 		}
 	}

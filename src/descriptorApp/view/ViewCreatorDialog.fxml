@@ -11,27 +11,14 @@
 <AnchorPane centerShape="false" prefHeight="699.0" prefWidth="1017.0" styleClass="background" stylesheets="@DarkThem.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="descriptorApp.view.ViewCreatorDialogController">
 
 	<children>
-		<SplitPane centerShape="false" dividerPositions="0.3" prefHeight="699.0" prefWidth="1019.0" styleClass="background" stylesheets="@DarkThem.css">
+		<SplitPane centerShape="false" prefHeight="699.0" prefWidth="1019.0" styleClass="background" stylesheets="@DarkThem.css">
 			<items>
-				<AnchorPane centerShape="false" prefHeight="601.0" prefWidth="309.0" styleClass="background" stylesheets="@DarkThem.css">
-					<children>
-						<HBox alignment="CENTER" prefHeight="33.0" prefWidth="263.0" spacing="5.0" styleClass="background" stylesheets="@DarkThem.css" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="8.0">
-							<children>
-								<Button mnemonicParsing="false" onAction="#handleNew" prefHeight="33.0" prefWidth="171.0" text="New" />
-								<Button layoutX="10.0" layoutY="10.0" mnemonicParsing="false" onAction="#handleSave" prefHeight="33.0" prefWidth="171.0" text="Save" />
-								<Button layoutX="181.0" layoutY="10.0" mnemonicParsing="false" onAction="#handleDelete" prefHeight="33.0" prefWidth="171.0" text="Delete" />
-							</children>
-						</HBox>
-						<VBox fx:id="vBox" layoutX="14.0" layoutY="14.0" prefHeight="535.0" prefWidth="273.0" />
-						<!-- <TreeView fx:id="treeView" editable="true" layoutX="9.0" layoutY="9.0" prefHeight="363.0" prefWidth="333.0" /> -->
-					</children>
-				</AnchorPane>
 				<AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="641.0" prefWidth="960.0">
 					<children>
 						<HBox alignment="CENTER" layoutX="60.0" layoutY="552.0" maxWidth="1.7976931348623157E308" prefHeight="33.0" prefWidth="693.0" spacing="5.0" AnchorPane.bottomAnchor="80.0" AnchorPane.leftAnchor="6.0" AnchorPane.rightAnchor="6.0">
 							<children>
 								<Button mnemonicParsing="false" onAction="#handleOk" prefHeight="33.0" prefWidth="252.0" text="Conditions (Click for help) :" HBox.hgrow="ALWAYS" />
-								<TextArea editable="false" maxWidth="1.7976931348623157E308" prefHeight="33.0" prefWidth="290.0" text="For example : age &lt; 20" wrapText="true" HBox.hgrow="ALWAYS" />
+								<TextArea fx:id="conditionTextArea" editable="false" maxWidth="1.7976931348623157E308" prefHeight="33.0" prefWidth="290.0" promptText="For example : age &lt; 20" wrapText="true" HBox.hgrow="ALWAYS" />
 								<Button defaultButton="true" layoutX="197.1875" layoutY="241.0" mnemonicParsing="false" onAction="#handleOk" prefWidth="90.0" text="OK" HBox.hgrow="ALWAYS" />
 								<Button cancelButton="true" layoutX="249.375" layoutY="241.0" mnemonicParsing="false" onAction="#handleCancel" prefHeight="33.0" prefWidth="120.0" text="Cancel" HBox.hgrow="ALWAYS" />
 							</children>
@@ -40,7 +27,7 @@
 						<Separator layoutX="10.0" layoutY="576.0" opacity="0.5" prefHeight="3.0" prefWidth="708.0" AnchorPane.bottomAnchor="120.0" AnchorPane.leftAnchor="7.0" AnchorPane.rightAnchor="7.0" />
 						<VBox fx:id="vBoxTable" alignment="CENTER" centerShape="false" layoutX="10.0" layoutY="57.0" prefHeight="513.0" prefWidth="229.0" />
 						<Separator layoutX="15.0" layoutY="47.5" opacity="0.65" prefHeight="1.0" prefWidth="229.0" />
-						<TextArea fx:id="queryTextArea" layoutX="5.0" layoutY="624.0" prefHeight="66.0" prefWidth="589.0" text="Generated Query : " AnchorPane.bottomAnchor="9.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="113.0" />
+						<TextArea fx:id="queryTextArea" layoutX="10.0" layoutY="624.0" prefHeight="66.0" prefWidth="589.0" text="Generated Query : " AnchorPane.bottomAnchor="8.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="108.0" />
 						<AnchorPane layoutX="254.0" layoutY="6.0" prefHeight="535.0" prefWidth="450.0">
                      <children>
                         <VBox fx:id="vBoxTreeTable" layoutX="3.0" layoutY="3.0" prefHeight="559.0" prefWidth="444.0" />
@@ -51,8 +38,8 @@
 								<Font name="Segoe UI Light" size="22.0" />
 							</font>
 						</Label>
-                  <Button layoutX="601.0" layoutY="624.0" mnemonicParsing="false" text="Preview" AnchorPane.leftAnchor="600.0" AnchorPane.rightAnchor="6.0" />
-                  <Button layoutX="601.0" layoutY="657.0" mnemonicParsing="false" text="Execute" AnchorPane.bottomAnchor="9.0" AnchorPane.leftAnchor="600.0" AnchorPane.rightAnchor="6.0" />
+                  <Button layoutX="797.0" layoutY="624.0" mnemonicParsing="false" prefHeight="33.0" prefWidth="216.0" text="Preview" AnchorPane.leftAnchor="797.0" AnchorPane.rightAnchor="6.0" />
+                  <Button layoutX="797.0" layoutY="657.0" mnemonicParsing="false" prefHeight="33.0" prefWidth="216.0" text="Execute" AnchorPane.bottomAnchor="9.0" AnchorPane.leftAnchor="797.0" AnchorPane.rightAnchor="6.0" />
 					</children>
 				</AnchorPane>
 			</items>

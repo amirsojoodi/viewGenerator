@@ -1,11 +1,10 @@
 package descriptorApp.view;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert.AlertType;
 import javafx.stage.Stage;
-
-import org.controlsfx.dialog.Dialogs;
-
 import descriptorApp.model.Description;
 
 public class DescriptionEditDialogController {
@@ -127,9 +126,11 @@ public class DescriptionEditDialogController {
 			return true;
 		} else {
 			// Show the error message.
-			Dialogs.create().title("Invalid Fields")
-					.masthead("Please correct invalid fields")
-					.message(errorMessage).showError();
+			Alert alert = new Alert(AlertType.ERROR);
+			alert.setTitle("Invalid Fields");
+			alert.setHeaderText("Please correct invalid fields");
+			alert.setContentText("Invalide Fields.");
+			alert.showAndWait();
 			return false;
 		}
 	}
