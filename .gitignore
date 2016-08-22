@@ -6,3 +6,4 @@ build/
 DBDescriptorInterface.jar
 DBDescriptorInterface_lib
 Local-viewFile.xml
+connectionFile.xml
