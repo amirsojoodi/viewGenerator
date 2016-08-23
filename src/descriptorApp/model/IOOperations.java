@@ -6,6 +6,7 @@ import java.io.StringWriter;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -476,12 +477,10 @@ public class IOOperations {
 		alert.setHeaderText(body);
 		alert.setContentText(content);
 
-		Exception ex = new Exception("Could not find file blabla.txt");
-
 		// Create expandable Exception.
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw);
-		ex.printStackTrace(pw);
+		e.printStackTrace(pw);
 		String exceptionText = sw.toString();
 
 		Label label = new Label("The exception stacktrace was:");
@@ -504,6 +503,109 @@ public class IOOperations {
 		alert.getDialogPane().setExpandableContent(expContent);
 
 		alert.showAndWait();
+	}
+
+	public String[][] previewView(String queryString, int numberOfRows) {
+		
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		ResultSetMetaData rsMetaData = null;
+		String[][] results = null;
+
+		SQLServerDataSource ds = new SQLServerDataSource();
+		ds.setServerName(dbConnection.getServerIP());
+		ds.setPortNumber(Integer.parseInt(dbConnection.getServerPort()));
+		ds.setDatabaseName(dbConnection.getDbName());
+		ds.setUser(dbConnection.getDbUsername());
+		ds.setPassword(dbConnection.getDbPassword());
+
+		try {
+			conn = ds.getConnection();
+			stmt = conn.createStatement();
+
+			rs = stmt.executeQuery(queryString);
+			
+			rsMetaData = rs.getMetaData();
+			
+			results = new String[numberOfRows][rsMetaData.getColumnCount()];
+			
+			for (int i = 0; i < rsMetaData.getColumnCount(); i++) {
+				results[0][i] = rsMetaData.getColumnLabel(i+1);
+			}
+			int j = 1;
+			while(rs.next()){
+				for (int i = 0; i < rsMetaData.getColumnCount(); i++) {
+					results[j][i] = rs.getString(i+1);
+				}
+				j++;
+			}
+			
+			
+		} catch (SQLException e) {
+			showException(e, "Error", "Could not execute the query!",
+					queryString);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return results;
+	}
+	
+	public boolean createView(String queryString) {
+		
+		boolean exceptionOccurred = false;
+		
+		Connection conn = null;
+		Statement stmt = null;
+
+		SQLServerDataSource ds = new SQLServerDataSource();
+		ds.setServerName(dbConnection.getServerIP());
+		ds.setPortNumber(Integer.parseInt(dbConnection.getServerPort()));
+		ds.setDatabaseName(dbConnection.getDbName());
+		ds.setUser(dbConnection.getDbUsername());
+		ds.setPassword(dbConnection.getDbPassword());
+
+		try {
+			conn = ds.getConnection();
+			stmt = conn.createStatement();
+
+			stmt.executeUpdate(queryString);
+			
+		} catch (SQLException e) {
+			showException(e, "Error", "Could not execute the query!",
+					queryString);
+			exceptionOccurred = true;
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		return exceptionOccurred;
 	}
 
 	/*

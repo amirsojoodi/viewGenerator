@@ -65,35 +65,39 @@ public class DBView {
 	}
 
 	public String getQuery() {
-		String q = "CREATE OR REPLACE VIEW " + getViewName();
+		String q = "CREATE VIEW " + getViewName();
 
 		if (tables.size() > 0) {
 			q += " AS SELECT ";
 		}
 
+		boolean commaAdded = false;
 		for (DBTable dbTable : tables) {
 			if (dbTable.getTableName().equals("*")) {
 				q += "* ";
 				break;
 			}
 
-			boolean commaAdded = false;
+			commaAdded = false;
 			for (DBColumn dbColumn : dbTable.getColumns()) {
 				if (dbColumn.getColumnName().equals("*")) {
 					q += dbColumn.getTableName() + ".* ";
 					break;
 				}
 				q += dbColumn.getTableName() + "." + dbColumn.getColumnName();
-				if (dbColumn.getDescription() != null) {
+				if (dbColumn.getDescription() != null && dbColumn.getDescription().length() != 0) {
 					q += " AS '" + dbColumn.getDescription() + "'";
+				} else {
+					q += " AS '" + dbColumn.getColumnName() + "'";
 				}
 				q += ", ";
 				commaAdded = true;
 			}
-			if (commaAdded) {
-				q = q.substring(0, q.length() - 2);
-			}
 		}
+		if (commaAdded) {
+			q = q.substring(0, q.length() - 2);
+		}
+		
 		if (primaryTable.get() != null) {
 			q += " FROM " + primaryTable.get() + " ";
 		}
@@ -107,6 +111,7 @@ public class DBView {
 		// }
 
 		if (whereClause.get() != null) {
+			q += "WHERE ";
 			q += whereClause.get();
 		}
 		q += ";";
