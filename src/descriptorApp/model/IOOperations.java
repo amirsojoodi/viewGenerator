@@ -506,7 +506,7 @@ public class IOOperations {
 	}
 
 	public String[][] previewView(String queryString, int numberOfRows) {
-		
+
 		Connection conn = null;
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -522,29 +522,35 @@ public class IOOperations {
 
 		try {
 			conn = ds.getConnection();
-			stmt = conn.createStatement();
+			stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+					ResultSet.CONCUR_READ_ONLY);
 
 			rs = stmt.executeQuery(queryString);
-			
 			rsMetaData = rs.getMetaData();
 			
-			results = new String[numberOfRows][rsMetaData.getColumnCount()];
+			rs.last();
+
+			int rowCount = rs.getRow();
+			rowCount = Math.min(numberOfRows, rowCount);
+			results = new String[rowCount + 1][rsMetaData.getColumnCount()];
+
+			rs.beforeFirst();
 			
 			for (int i = 0; i < rsMetaData.getColumnCount(); i++) {
-				results[0][i] = rsMetaData.getColumnLabel(i+1);
+				results[0][i] = rsMetaData.getColumnLabel(i + 1);
 			}
-			int j = 1;
-			while(rs.next()){
-				for (int i = 0; i < rsMetaData.getColumnCount(); i++) {
-					results[j][i] = rs.getString(i+1);
+			int i = 1;
+			while (rs.next() && i <= rowCount) {
+				for (int j = 0; j < rsMetaData.getColumnCount(); j++) {
+					results[i][j] = rs.getString(j + 1);
 				}
-				j++;
+				i++;
 			}
-			
-			
+
 		} catch (SQLException e) {
 			showException(e, "Error", "Could not execute the query!",
 					queryString);
+			return null;
 		} finally {
 			if (stmt != null) {
 				try {
@@ -563,11 +569,11 @@ public class IOOperations {
 		}
 		return results;
 	}
-	
+
 	public boolean createView(String queryString) {
-		
+
 		boolean exceptionOccurred = false;
-		
+
 		Connection conn = null;
 		Statement stmt = null;
 
@@ -583,7 +589,7 @@ public class IOOperations {
 			stmt = conn.createStatement();
 
 			stmt.executeUpdate(queryString);
-			
+
 		} catch (SQLException e) {
 			showException(e, "Error", "Could not execute the query!",
 					queryString);
@@ -604,7 +610,7 @@ public class IOOperations {
 				}
 			}
 		}
-		
+
 		return exceptionOccurred;
 	}
 

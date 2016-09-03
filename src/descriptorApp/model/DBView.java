@@ -11,7 +11,7 @@ public class DBView {
 	private SimpleStringProperty primaryTable;
 	private SimpleStringProperty whereClause;
 	private SimpleStringProperty query;
-	
+
 	private ArrayList<DBTable> tables;
 
 	// private ArrayList<DBJoin> joins;
@@ -85,7 +85,8 @@ public class DBView {
 					break;
 				}
 				q += dbColumn.getTableName() + "." + dbColumn.getColumnName();
-				if (dbColumn.getDescription() != null && dbColumn.getDescription().length() != 0) {
+				if (dbColumn.getDescription() != null
+						&& dbColumn.getDescription().length() != 0) {
 					q += " AS '" + dbColumn.getDescription() + "'";
 				} else {
 					q += " AS '" + dbColumn.getColumnName() + "'";
@@ -97,9 +98,16 @@ public class DBView {
 		if (commaAdded) {
 			q = q.substring(0, q.length() - 2);
 		}
-		
-		if (primaryTable.get() != null) {
-			q += " FROM " + primaryTable.get() + " ";
+
+		// if (primaryTable.get() != null) {
+		// q += " FROM " + primaryTable.get() + " ";
+		// }
+		if (tables.size() > 0) {
+			q += " FROM ";
+			for (DBTable dbTable : tables) {
+				q += dbTable.getTableName() + ", ";
+			}
+			q = q.substring(0, q.length() - 2) + " ";
 		}
 
 		// for (DBJoin dbJoin : joins) {
@@ -110,7 +118,7 @@ public class DBView {
 		// + dbJoin.getRightColumnName() + " ";
 		// }
 
-		if (whereClause.get() != null) {
+		if (whereClause.get() != null && whereClause.get().length() > 0) {
 			q += "WHERE ";
 			q += whereClause.get();
 		}
@@ -127,7 +135,7 @@ public class DBView {
 	public ArrayList<DBTable> getTables() {
 		return tables;
 	}
-	
+
 	public void setTables(ArrayList<DBTable> tables) {
 		this.tables = tables;
 	}

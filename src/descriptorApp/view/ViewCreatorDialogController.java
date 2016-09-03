@@ -3,6 +3,8 @@ package descriptorApp.view;
 import java.awt.Desktop;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -12,8 +14,12 @@ import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.Group;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeCell;
@@ -27,6 +33,8 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import descriptorApp.MainApp;
@@ -484,7 +492,48 @@ public class ViewCreatorDialogController {
 			String[][] results = mainApp.getIoOperations().previewView(
 					(queryText.get().substring(startIndex)).replaceFirst(
 							"SELECT", "SELECT TOP 100"), 100);
+
+			if (results == null) {
+				return;
+			}
+
+			Stage previewStage = new Stage();
+			previewStage.setTitle("Preview");
+			previewStage.initModality(Modality.WINDOW_MODAL);
+			Group root = new Group();
+			Scene scene = new Scene(root, 800, 600, Color.WHITE);
+
+			TableView<List<String>> table = new TableView<>();
+			table.setPrefSize(800, 600);
+
+			for (int j = 0; j < results[0].length; j++) {
+				String columnName = results[0][j];
+				TableColumn<List<String>, String> col = new TableColumn<>(
+						columnName);
+				col.setMinWidth(80);
+				final int colIndex = j;
+				col.setCellValueFactory(data -> {
+					List<String> rowValues = data.getValue();
+					String cellValue;
+					if (colIndex < rowValues.size()) {
+						cellValue = rowValues.get(colIndex);
+					} else {
+						cellValue = "";
+					}
+					return new ReadOnlyStringWrapper(cellValue);
+				});
+				table.getColumns().add(col);
+			}
+
+			for (int i = 1; i < results.length; i++) {
+				table.getItems().add(Arrays.asList(results[i]));
+			}
+			
+			root.getChildren().add(table);
+			previewStage.setScene(scene);
+			previewStage.show();
 		}
+
 	}
 
 	@FXML
