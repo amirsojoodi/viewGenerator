@@ -3,25 +3,17 @@
     <connection>
         <connectionName>Local</connectionName>
         <dbName>TestDB</dbName>
-        <dbPassword>atashneshani125</dbPassword>
+        <dbPassword>0 21 0 18 9 15 4 18 9 0 15 8 80 83 84 </dbPassword>
         <dbUsername>sa</dbUsername>
         <serverIP>127.0.0.1</serverIP>
         <serverPort>1433</serverPort>
     </connection>
     <connection>
         <connectionName>Sess</connectionName>
-        <dbName>ShData</dbName>
-        <dbPassword>$Pass@2015</dbPassword>
+        <dbName>SessDB</dbName>
+        <dbPassword>69 49 0 18 18 33 83 81 80 84 </dbPassword>
         <dbUsername>sa</dbUsername>
         <serverIP>185.64.176.87</serverIP>
         <serverPort>1433</serverPort>
-    </connection>
-    <connection>
-        <connectionName>Connection#4</connectionName>
-        <dbName>Shahrdari</dbName>
-        <dbPassword>test</dbPassword>
-        <dbUsername>sa</dbUsername>
-        <serverIP>192.168.2.100</serverIP>
-        <serverPort>51129</serverPort>
     </connection>
 </connections>

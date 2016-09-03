@@ -1,14 +1,16 @@
 package descriptorApp.view;
 
+import java.util.StringTokenizer;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
@@ -47,7 +49,7 @@ public class DataBaseConfigDialogController {
 	private Stage dialogStage;
 	MainApp mainApp;
 	private boolean okClicked = false;
-	
+
 	public final static String connectionsTreeRootName = "Connections";
 
 	/**
@@ -80,7 +82,8 @@ public class DataBaseConfigDialogController {
 	private void showConnectionDetails(TreeItem<String> newValue,
 			TreeItem<String> oldValue) {
 
-		if (oldValue != null && !oldValue.getValue().equals(connectionsTreeRootName)) {
+		if (oldValue != null
+				&& !oldValue.getValue().equals(connectionsTreeRootName)) {
 			String connectionName = oldValue.getValue();
 			for (DBConnection dbConnection : mainApp.getConnectionData()) {
 				if (dbConnection.getConnectionName().equals(connectionName)) {
@@ -88,7 +91,7 @@ public class DataBaseConfigDialogController {
 					dbConnection.setServerPort(serverPort.getText());
 					dbConnection.setDbName(dataBaseName.getText());
 					dbConnection.setDbUsername(userName.getText());
-					dbConnection.setDbPassword(password.getText());
+					dbConnection.setDbPassword(hash(password.getText()));
 					break;
 				}
 			}
@@ -100,7 +103,8 @@ public class DataBaseConfigDialogController {
 			// dbConnection.setDbPassword("");
 		}
 
-		if (newValue != null && !newValue.getValue().equals(connectionsTreeRootName)) {
+		if (newValue != null
+				&& !newValue.getValue().equals(connectionsTreeRootName)) {
 			String connectionName = newValue.getValue();
 			for (DBConnection dbConnection : mainApp.getConnectionData()) {
 				if (dbConnection.getConnectionName().equals(connectionName)) {
@@ -108,7 +112,7 @@ public class DataBaseConfigDialogController {
 					serverIP.setText(dbConnection.getServerIP());
 					serverPort.setText(dbConnection.getServerPort());
 					userName.setText(dbConnection.getDbUsername());
-					password.setText(dbConnection.getDbPassword());
+					password.setText(dehash(dbConnection.getDbPassword()));
 					dataBaseName.setText(dbConnection.getDbName());
 					break;
 				}
@@ -121,6 +125,30 @@ public class DataBaseConfigDialogController {
 			password.setText("");
 			dataBaseName.setText("");
 		}
+	}
+
+	private String hash(String text) {
+		String st = "";
+		byte b = 'a';
+		for (int i = 0; i < text.length(); i++) {
+			st += String.valueOf((int) text.charAt(i) ^ (int) b) + " ";
+			// bytes[i] = (byte)(0xff & (text.getBytes()[i] ^ b));
+		}
+		return st;
+	}
+	
+	private String dehash(String text){
+		char[] chars = new char[100];
+		
+		StringTokenizer st = new StringTokenizer(text);
+		
+		byte b = 'a';
+		int i = 0;
+		while (st.hasMoreTokens()) {
+			chars[i++] = (char)((char)Integer.parseInt(st.nextToken()) ^ (int) b); 
+		}
+		
+		return new String(chars);
 	}
 
 	/**
@@ -160,7 +188,7 @@ public class DataBaseConfigDialogController {
 					dbConnection.setServerIP(serverIP.getText());
 					dbConnection.setServerPort(serverPort.getText());
 					dbConnection.setDbUsername(userName.getText());
-					dbConnection.setDbPassword(password.getText());
+					dbConnection.setDbPassword(hash(password.getText()));
 					dbConnection.setDbName(dataBaseName.getText());
 					break;
 				}

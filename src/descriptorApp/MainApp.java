@@ -28,16 +28,10 @@ public class MainApp extends Application {
 
 	// TODO add a button in "addDataBase" dialogue that loads data from current
 	// dataBase
-	// TODO connectionsFile should be hidden and not accessible by others
 	// TODO in connections when handling new, accept the not used before names
-	// TODO when creating new connection, a new file have to be assigned to the
-	// connection view [when changing the name of a connection the name of its
-	// related file have to be changed too
 	// TODO implement and add button for search
 	// TODO add delete table functionality in description page
 	// TODO preventing to set name "Views" and "Connections" for corresponding treeView(s)
-	// TODO preview
-	// TODO Execute Query
 
 	private Stage primaryStage;
 	private BorderPane rootLayout;
